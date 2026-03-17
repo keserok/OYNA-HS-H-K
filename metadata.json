@@ -1,0 +1,7 @@
+{
+  "name": "Oyna K + H + HS",
+  "description": "Kaleci Hakem Tesis Arayüzü",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
