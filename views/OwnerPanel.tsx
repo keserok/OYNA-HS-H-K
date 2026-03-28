@@ -1,9 +1,9 @@
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   ArrowLeft, Wallet, TrendingUp, Calendar, AlertCircle, Settings, 
   MessageSquare, Clock, XCircle, Home, Users, CheckCircle2, ChevronRight, Bell, 
-  MoreHorizontal, Shield, Hand, DollarSign, Filter, RefreshCw, X, Search, ChevronDown, BarChart3, ArrowUpRight, Zap, Phone, Plus, User, Lock, CreditCard, Banknote, Trash2, Edit3, Tag, Percent, CalendarDays, TrendingDown, Send, Receipt, ClipboardList, Briefcase, UserCheck, Flame, Building2, Image as ImageIcon, MapPin, Globe, HelpCircle, LogOut, FileText, Camera, Save, Type, List, Check, QrCode, PieChart as PieChartIcon, Activity, ZapOff, CreditCard as CardIcon, Coins, Trophy, Star, Target
+  MoreHorizontal, Shield, Hand, DollarSign, Filter, RefreshCw, X, Search, ChevronDown, BarChart3, ArrowUpRight, Zap, Phone, Plus, User, Lock, CreditCard, Banknote, Trash2, Edit3, Tag, Percent, CalendarDays, TrendingDown, Send, Receipt, ClipboardList, Briefcase, UserCheck, Flame, Building2, Image as ImageIcon, MapPin, Globe, HelpCircle, LogOut, FileText, Camera, Save, Type, List, Check, QrCode, PieChart as PieChartIcon, Activity, ZapOff, CreditCard as CardIcon, Coins, Trophy, Star, Target, ChevronLeft, ImagePlus, GripVertical, LayoutDashboard
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -19,44 +19,53 @@ interface OwnerPanelProps {
 // --- MOCK DATA ---
 
 const HOURLY_DATA = [
-    { time: '00:00', occupancy: 0, pitches: [false, false, false, false] },
-    { time: '01:00', occupancy: 0, pitches: [false, false, false, false] },
-    { time: '02:00', occupancy: 0, pitches: [false, false, false, false] },
-    { time: '03:00', occupancy: 0, pitches: [false, false, false, false] },
-    { time: '04:00', occupancy: 0, pitches: [false, false, false, false] },
-    { time: '05:00', occupancy: 0, pitches: [false, false, false, false] },
-    { time: '06:00', occupancy: 0, pitches: [false, false, false, false] },
-    { time: '07:00', occupancy: 0, pitches: [false, false, false, false] },
-    { time: '08:00', occupancy: 0, pitches: [false, false, false, false] },
-    { time: '09:00', occupancy: 1, pitches: [true, false, false, false] },
-    { time: '10:00', occupancy: 0, pitches: [false, false, false, false] },
-    { time: '11:00', occupancy: 2, pitches: [true, true, false, false] },
-    { time: '12:00', occupancy: 1, pitches: [false, false, true, false] },
-    { time: '13:00', occupancy: 0, pitches: [false, false, false, false] },
-    { time: '14:00', occupancy: 2, pitches: [true, false, true, false] },
-    { time: '15:00', occupancy: 1, pitches: [false, true, false, false] },
-    { time: '16:00', occupancy: 4, pitches: [true, true, true, true] },
-    { time: '17:00', occupancy: 3, pitches: [true, true, true, false] },
-    { time: '18:00', occupancy: 4, pitches: [true, true, true, true] },
-    { time: '19:00', occupancy: 4, pitches: [true, true, true, true] },
-    { time: '20:00', occupancy: 4, pitches: [true, true, true, true] },
-    { time: '21:00', occupancy: 3, pitches: [true, true, false, true] },
-    { time: '22:00', occupancy: 2, pitches: [true, false, false, true] },
-    { time: '23:00', occupancy: 0, pitches: [false, false, false, false] },
+    { time: '00:00', occupancy: 0, pitches: [null, null, null, null] },
+    { time: '01:00', occupancy: 0, pitches: [null, null, null, null] },
+    { time: '02:00', occupancy: 0, pitches: [null, null, null, null] },
+    { time: '03:00', occupancy: 0, pitches: [null, null, null, null] },
+    { time: '04:00', occupancy: 0, pitches: [null, null, null, null] },
+    { time: '05:00', occupancy: 0, pitches: [null, null, null, null] },
+    { time: '06:00', occupancy: 0, pitches: [null, null, null, null] },
+    { time: '07:00', occupancy: 0, pitches: [null, null, null, null] },
+    { time: '08:00', occupancy: 0, pitches: [null, null, null, null] },
+    { time: '09:00', occupancy: 1, pitches: ['DAILY', null, null, null] },
+    { time: '10:00', occupancy: 0, pitches: [null, null, null, null] },
+    { time: '11:00', occupancy: 2, pitches: ['DAILY', 'SUB', null, null] },
+    { time: '12:00', occupancy: 1, pitches: [null, null, 'DAILY', null] },
+    { time: '13:00', occupancy: 0, pitches: [null, null, null, null] },
+    { time: '14:00', occupancy: 2, pitches: ['SUB', null, 'DAILY', null] },
+    { time: '15:00', occupancy: 1, pitches: [null, 'SUB', null, null] },
+    { time: '16:00', occupancy: 4, pitches: ['DAILY', 'SUB', 'DAILY', 'SUB'] },
+    { time: '17:00', occupancy: 3, pitches: ['SUB', 'DAILY', 'SUB', null] },
+    { time: '18:00', occupancy: 4, pitches: ['DAILY', 'DAILY', 'SUB', 'SUB'] },
+    { time: '19:00', occupancy: 4, pitches: ['SUB', 'SUB', 'DAILY', 'DAILY'] },
+    { time: '20:00', occupancy: 4, pitches: ['DAILY', 'SUB', 'DAILY', 'SUB'] },
+    { time: '21:00', occupancy: 3, pitches: ['SUB', 'DAILY', null, 'DAILY'] },
+    { time: '22:00', occupancy: 2, pitches: ['DAILY', null, null, 'SUB'] },
+    { time: '23:00', occupancy: 0, pitches: [null, null, null, null] },
 ];
 
 const INITIAL_PENDING_REQUESTS = [
     {
         id: 'req1',
+        type: 'PAYMENT_MISSING',
+        title: 'Eksik Ödeme Bildirimi',
+        subtitle: 'Saha 1 • 18:00 - 19:00 Seansı',
+        details: 'Son 1 saat! 500₺ tutarında ödeme henüz tamamlanmadı.',
+        status: 'PENDING',
+        icon: <AlertCircle size={18} className="text-red-500" />
+    },
+    {
+        id: 'req2',
         type: 'REFEREE_APPROVAL',
         title: 'Hakem Maç Sonu Onayı',
-        subtitle: 'Cüneyt Çakır • Saha 1 (18:00 - 19:00)',
+        subtitle: 'Cüneyt Çakır • Saha 1 (17:00 - 18:00)',
         details: 'Maç sorunsuz tamamlandı. Skor: 5-3',
         status: 'PENDING',
         icon: <Shield size={18} />
     },
     {
-        id: 'req2',
+        id: 'req3',
         type: 'GK_ASSIGNMENT',
         title: 'Kaleci Atama Onayı',
         subtitle: 'Volkan D. • Saha 2 (21:00 - 22:00)',
@@ -146,8 +155,8 @@ const PAYMENT_METHODS = [
 ];
 
 const SUBSCRIPTION_RATIO = [
-    { name: 'Abone', value: 65, color: '#00F5FF' },
-    { name: 'Normal', value: 35, color: '#FF00FF' },
+    { name: 'Abone', value: 65, color: '#3b82f6' }, // Blue
+    { name: 'Normal', value: 35, color: '#10b981' }, // Green
 ];
 
 const HEATMAP_DATA = [
@@ -162,6 +171,16 @@ const HEATMAP_DATA = [
 ];
 
 type OwnerTab = 'HOME' | 'CALENDAR' | 'FINANCE' | 'TEAM' | 'MORE' | 'PENDING_ACTIONS';
+
+type WidgetType = 'QUICK_STATS' | 'QUICK_ACTIONS' | 'OCCUPANCY_ANALYSIS' | 'PENDING_REQUESTS' | 'UPCOMING_MATCHES';
+
+const WIDGETS: { id: WidgetType; title: string; description: string; icon: any }[] = [
+    { id: 'QUICK_STATS', title: 'Hızlı İstatistikler', description: 'Günlük ciro ve doluluk oranını gösterir.', icon: BarChart3 },
+    { id: 'QUICK_ACTIONS', title: 'Hızlı İşlemler', description: 'QR okutma ve yeni kayıt oluşturma butonları.', icon: Zap },
+    { id: 'OCCUPANCY_ANALYSIS', title: 'Saha Doluluk Analizi', description: 'Sahaların saatlik doluluk durumunu gösterir.', icon: Activity },
+    { id: 'PENDING_REQUESTS', title: 'Onay Bekleyen Talepler', description: 'Bekleyen rezervasyon taleplerini listeler.', icon: Clock },
+    { id: 'UPCOMING_MATCHES', title: 'Yaklaşan Maçlar', description: 'Yakın zamandaki maçları gösterir.', icon: Calendar }
+];
 
 const INTERNAL_PITCHES = [
     { id: '1', name: 'Saha 1' },
@@ -265,12 +284,59 @@ const LogoutConfirmationModal: React.FC<{ onClose: () => void; onConfirm: () => 
     );
 };
 
-const PricingPolicyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-    const [prices, setPrices] = useState({
-        daytime: 2000,
-        prime: 3200,
-        weekend: 3500
+interface Tariff {
+    id: string;
+    name: string;
+    startTime: string;
+    endTime: string;
+    price: number;
+    deposit: number;
+}
+
+const PricingPolicyModal: React.FC<{ onClose: () => void; facilityId: string; initialPrices?: any }> = ({ onClose, facilityId, initialPrices }) => {
+    const [tariffs, setTariffs] = useState<Tariff[]>(() => {
+        if (Array.isArray(initialPrices)) return initialPrices;
+        return [
+            { id: '1', name: 'Gündüz Tarifesi', startTime: '08:00', endTime: '17:00', price: 2000, deposit: 500 },
+            { id: '2', name: 'Akşam Tarifesi', startTime: '18:00', endTime: '00:00', price: 3200, deposit: 1000 },
+            { id: '3', name: 'Hafta Sonu Sabit', startTime: '08:00', endTime: '00:00', price: 3500, deposit: 1500 }
+        ];
     });
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSave = async () => {
+        if (!facilityId) return;
+        setIsSaving(true);
+        try {
+            // Mock save
+            setTimeout(() => {
+                setIsSaving(false);
+                onClose();
+            }, 1000);
+        } catch (error) {
+            console.error("Fiyatlandırma kaydedilirken hata:", error);
+            setIsSaving(false);
+        }
+    };
+
+    const addTariff = () => {
+        setTariffs([...tariffs, {
+            id: Date.now().toString(),
+            name: 'Yeni Tarife',
+            startTime: '08:00',
+            endTime: '00:00',
+            price: 0,
+            deposit: 0
+        }]);
+    };
+
+    const updateTariff = (id: string, field: keyof Tariff, value: string | number) => {
+        setTariffs(tariffs.map(t => t.id === id ? { ...t, [field]: value } : t));
+    };
+
+    const removeTariff = (id: string) => {
+        setTariffs(tariffs.filter(t => t.id !== id));
+    };
 
     return (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col animate-in fade-in duration-300">
@@ -279,8 +345,12 @@ const PricingPolicyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     <X size={20} />
                 </button>
                 <h2 className="text-white font-bold text-lg italic">Fiyatlandırma Politikası</h2>
-                <button onClick={onClose} className="p-2 px-4 rounded-xl bg-[#FFFF00] text-black font-bold text-xs flex items-center gap-2">
-                    <Save size={16} /> KAYDET
+                <button 
+                    onClick={handleSave} 
+                    disabled={isSaving}
+                    className="p-2 px-4 rounded-xl bg-[#FFFF00] text-black font-bold text-xs flex items-center gap-2 hover:bg-yellow-300 disabled:opacity-50"
+                >
+                    {isSaving ? '...' : <><Save size={16} /> KAYDET</>}
                 </button>
             </div>
 
@@ -288,86 +358,235 @@ const PricingPolicyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl flex items-start gap-3">
                     <AlertCircle size={20} className="text-blue-400 shrink-0 mt-0.5" />
                     <p className="text-xs text-blue-200 leading-relaxed font-medium">
-                        Fiyat değişiklikleri mevcut rezervasyonları etkilemez, sadece yeni yapılacak kayıtlar için geçerli olur.
+                        Fiyat değişiklikleri mevcut rezervasyonları etkilemez, sadece yeni yapılacak kayıtlar için geçerli olur. Her tarife için saat aralığı, saatlik ücret ve kapora tutarı belirleyebilirsiniz.
                     </p>
                 </div>
 
                 <div className="space-y-4">
-                    {[
-                        { id: 'daytime', label: 'Gündüz Tarifesi (08:00 - 17:00)', icon: <Clock size={20} />, value: prices.daytime },
-                        { id: 'prime', label: 'Akşam Tarifesi (18:00 - 00:00)', icon: <Flame size={20} />, value: prices.prime },
-                        { id: 'weekend', label: 'Hafta Sonu Sabit', icon: <Calendar size={20} />, value: prices.weekend }
-                    ].map(item => (
-                        <div key={item.id} className="bg-[#161B22] p-5 rounded-3xl border border-white/5 space-y-3">
-                            <div className="flex items-center gap-3 text-gray-400">
-                                {item.icon}
-                                <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
-                            </div>
-                            <div className="flex items-center gap-4">
+                    {tariffs.map((tariff) => (
+                        <div key={tariff.id} className="bg-[#161B22] p-5 rounded-3xl border border-white/5 space-y-4 relative group">
+                            <button 
+                                onClick={() => removeTariff(tariff.id)}
+                                className="absolute top-4 right-4 p-2 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                            
+                            <div className="flex items-center gap-3 text-gray-400 border-b border-white/5 pb-4 pr-10">
+                                <Tag size={20} className="text-[#FFFF00]" />
                                 <input 
-                                    type="number" 
-                                    value={item.value}
-                                    onChange={(e) => setPrices({...prices, [item.id]: parseInt(e.target.value)})}
-                                    className="flex-1 bg-[#0A0E14] border border-white/5 p-4 rounded-2xl text-white font-black text-xl outline-none focus:border-[#FFFF00]/50 transition-colors"
+                                    type="text" 
+                                    value={tariff.name}
+                                    onChange={(e) => updateTariff(tariff.id, 'name', e.target.value)}
+                                    className="bg-transparent text-sm font-black uppercase tracking-widest text-white outline-none w-full"
+                                    placeholder="Tarife Adı"
                                 />
-                                <span className="text-xl font-black text-white">₺</span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Başlangıç Saati</label>
+                                    <div className="flex items-center gap-2 bg-[#0A0E14] border border-white/5 p-3 rounded-xl">
+                                        <Clock size={16} className="text-gray-400" />
+                                        <input 
+                                            type="time" 
+                                            value={tariff.startTime}
+                                            onChange={(e) => updateTariff(tariff.id, 'startTime', e.target.value)}
+                                            className="bg-transparent text-white text-sm font-bold outline-none w-full"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Bitiş Saati</label>
+                                    <div className="flex items-center gap-2 bg-[#0A0E14] border border-white/5 p-3 rounded-xl">
+                                        <Clock size={16} className="text-gray-400" />
+                                        <input 
+                                            type="time" 
+                                            value={tariff.endTime}
+                                            onChange={(e) => updateTariff(tariff.id, 'endTime', e.target.value)}
+                                            className="bg-transparent text-white text-sm font-bold outline-none w-full"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Saatlik Ücret</label>
+                                    <div className="flex items-center gap-2 bg-[#0A0E14] border border-white/5 p-3 rounded-xl focus-within:border-[#FFFF00]/50 transition-colors">
+                                        <input 
+                                            type="number" 
+                                            value={tariff.price}
+                                            onChange={(e) => updateTariff(tariff.id, 'price', parseInt(e.target.value) || 0)}
+                                            className="bg-transparent text-white text-lg font-black outline-none w-full"
+                                        />
+                                        <span className="text-sm font-bold text-gray-400">₺</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Kapora Tutarı</label>
+                                    <div className="flex items-center gap-2 bg-[#0A0E14] border border-white/5 p-3 rounded-xl focus-within:border-[#FFFF00]/50 transition-colors">
+                                        <input 
+                                            type="number" 
+                                            value={tariff.deposit}
+                                            onChange={(e) => updateTariff(tariff.id, 'deposit', parseInt(e.target.value) || 0)}
+                                            className="bg-transparent text-white text-lg font-black outline-none w-full"
+                                        />
+                                        <span className="text-sm font-bold text-gray-400">₺</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     ))}
                 </div>
+
+                <button 
+                    onClick={addTariff}
+                    className="w-full py-4 border-2 border-dashed border-white/10 rounded-3xl text-gray-400 font-bold text-sm flex items-center justify-center gap-2 hover:bg-white/5 hover:text-white hover:border-white/20 transition-all"
+                >
+                    <Plus size={18} /> YENİ TARİFE EKLE
+                </button>
             </div>
         </div>
     );
 };
 
-const BankAccountsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-    const [accounts, setAccounts] = useState([
-        { id: '1', bank: 'Garanti BBVA', name: 'Arena Sport Center LTD.', iban: 'TR82 0006 2000 1234 5678 9012 34' },
-        { id: '2', bank: 'İş Bankası', name: 'Arena Sport Center LTD.', iban: 'TR44 0006 4000 9876 5432 1098 76' }
-    ]);
+const BankOperationsModal: React.FC<{ onClose: () => void; facilityId: string }> = ({ onClose, facilityId }) => {
+    const [withdrawAmount, setWithdrawAmount] = useState('');
+    const [iban, setIban] = useState('');
+    const [ibanPhoto, setIbanPhoto] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const availableBalance = 12500; // Mock balance
+
+    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // Mock reading the file
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setIbanPhoto(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleWithdraw = async () => {
+        if (!withdrawAmount || !iban) return;
+        setIsProcessing(true);
+        try {
+            // Mock API call
+            setTimeout(() => {
+                setIsProcessing(false);
+                alert('Para çekme talebiniz alındı.');
+                onClose();
+            }, 1500);
+        } catch (error) {
+            console.error("İşlem hatası:", error);
+            setIsProcessing(false);
+        }
+    };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col animate-in fade-in duration-300">
-            <div className="bg-[#161B22] p-4 flex justify-between items-center border-b border-white/5 safe-area-top">
-                <button onClick={onClose} className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white">
-                    <X size={20} />
-                </button>
-                <h2 className="text-white font-bold text-lg italic">Banka Hesapları</h2>
-                <button className="p-2 px-4 rounded-xl bg-blue-600 text-white font-bold text-xs flex items-center gap-2">
-                    <Plus size={16} /> EKLE
-                </button>
+        <div className="fixed inset-0 z-50 bg-[#0A0D14] flex flex-col animate-in slide-in-from-bottom-4 duration-300">
+            <div className="bg-[#161B22] p-4 flex justify-between items-center border-b border-white/5 safe-area-top shadow-lg z-10">
+                <div className="flex items-center gap-3">
+                    <button onClick={onClose} className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors">
+                        <X size={20} />
+                    </button>
+                    <h2 className="text-white font-bold text-lg">Banka İşlemleri</h2>
+                </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {accounts.map(acc => (
-                    <div key={acc.id} className="bg-[#161B22] p-6 rounded-[32px] border border-white/5 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <Building2 size={80} />
-                        </div>
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="text-lg font-black text-white italic">{acc.bank}</h3>
-                                <p className="text-[10px] text-gray-500 font-bold uppercase">{acc.name}</p>
-                            </div>
-                            <button className="p-2 text-gray-600 hover:text-red-500 transition-colors">
-                                <Trash2 size={18} />
-                            </button>
-                        </div>
-                        <div className="bg-[#0A0E14] p-4 rounded-2xl border border-white/5 flex items-center justify-between group/iban">
-                            <span className="text-xs font-mono text-gray-300 tracking-wider">{acc.iban}</span>
-                            <button className="text-blue-400 hover:text-blue-300">
-                                <ClipboardList size={16} />
-                            </button>
-                        </div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-10 max-w-2xl mx-auto w-full space-y-8">
+                
+                {/* Balance Card */}
+                <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 p-6 rounded-3xl border border-blue-500/20 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                        <Wallet size={80} />
                     </div>
-                ))}
+                    <p className="text-blue-200 text-sm font-bold mb-1">Çekilebilir Bakiye</p>
+                    <h3 className="text-4xl font-black text-white tracking-tight">₺{availableBalance.toLocaleString('tr-TR')}</h3>
+                </div>
+
+                {/* Withdraw Form */}
+                <div className="space-y-6">
+                    <div className="bg-[#161B22] p-5 rounded-2xl border border-white/5 focus-within:border-white/20 transition-colors shadow-sm">
+                        <label className="text-xs font-bold text-gray-400 uppercase block mb-2">Çekilecek Tutar (TL)</label>
+                        <input 
+                            type="number" 
+                            value={withdrawAmount}
+                            onChange={(e) => setWithdrawAmount(e.target.value)}
+                            className="w-full bg-transparent text-white font-bold text-2xl outline-none placeholder:text-gray-600"
+                            placeholder="0.00"
+                            max={availableBalance}
+                        />
+                    </div>
+
+                    <div className="bg-[#161B22] p-5 rounded-2xl border border-white/5 focus-within:border-white/20 transition-colors shadow-sm">
+                        <label className="text-xs font-bold text-gray-400 uppercase block mb-2">IBAN Numarası</label>
+                        <input 
+                            type="text" 
+                            value={iban}
+                            onChange={(e) => setIban(e.target.value)}
+                            className="w-full bg-transparent text-white font-mono text-lg outline-none placeholder:text-gray-600 tracking-wider"
+                            placeholder="TR00 0000 0000 0000 0000 0000 00"
+                        />
+                    </div>
+
+                    <div className="bg-[#161B22] p-5 rounded-2xl border border-white/5 shadow-sm">
+                        <label className="text-xs font-bold text-gray-400 uppercase block mb-3">IBAN Fotoğrafı (İsteğe Bağlı)</label>
+                        
+                        {ibanPhoto ? (
+                            <div className="relative w-full h-48 rounded-xl overflow-hidden border border-white/10 group">
+                                <img src={ibanPhoto} alt="IBAN" className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <button 
+                                        onClick={() => setIbanPhoto(null)}
+                                        className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div 
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-full h-32 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-3 text-gray-500 hover:text-white hover:border-white/30 transition-colors cursor-pointer bg-black/20"
+                            >
+                                <Camera size={32} />
+                                <span className="text-sm font-bold">Fotoğraf Çek veya Yükle</span>
+                                <input 
+                                    type="file" 
+                                    ref={fileInputRef} 
+                                    onChange={handlePhotoUpload} 
+                                    accept="image/*" 
+                                    capture="environment"
+                                    className="hidden" 
+                                />
+                            </div>
+                        )}
+                        <p className="text-[10px] text-gray-500 mt-3 leading-relaxed">
+                            İşleminizin daha hızlı onaylanması için IBAN numaranızın yer aldığı banka kartınızın veya dekontunuzun fotoğrafını yükleyebilirsiniz.
+                        </p>
+                    </div>
+                </div>
+
+                <button 
+                    onClick={handleWithdraw}
+                    disabled={isProcessing || !withdrawAmount || !iban || Number(withdrawAmount) > availableBalance || Number(withdrawAmount) <= 0}
+                    className="w-full py-4 rounded-2xl bg-[#FFFF00] text-black font-black text-lg flex items-center justify-center gap-2 hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[0_0_20px_rgba(255,255,0,0.2)]"
+                >
+                    {isProcessing ? 'İŞLENİYOR...' : <><Banknote size={24} /> PARA ÇEK</>}
+                </button>
             </div>
         </div>
     );
 };
 
-const WorkingHoursModal: React.FC<{ onClose: () => void; isOpen: boolean; onToggleOpen: () => void }> = ({ onClose, isOpen, onToggleOpen }) => {
-    const days = [
+const WorkingHoursModal: React.FC<{ onClose: () => void; facilityId: string; isOpen: boolean; onToggleOpen: () => void; initialHours?: any[] }> = ({ onClose, facilityId, isOpen, onToggleOpen, initialHours }) => {
+    const [days, setDays] = useState(initialHours || [
         { name: 'Pazartesi', open: '08:00', close: '00:00' },
         { name: 'Salı', open: '08:00', close: '00:00' },
         { name: 'Çarşamba', open: '08:00', close: '00:00' },
@@ -375,7 +594,23 @@ const WorkingHoursModal: React.FC<{ onClose: () => void; isOpen: boolean; onTogg
         { name: 'Cuma', open: '08:00', close: '02:00' },
         { name: 'Cumartesi', open: '08:00', close: '02:00' },
         { name: 'Pazar', open: '08:00', close: '00:00' },
-    ];
+    ]);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSave = async () => {
+        if (!facilityId) return;
+        setIsSaving(true);
+        try {
+            // Mock save
+            setTimeout(() => {
+                setIsSaving(false);
+                onClose();
+            }, 1000);
+        } catch (error) {
+            console.error("Çalışma saatleri kaydedilirken hata:", error);
+            setIsSaving(false);
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col animate-in fade-in duration-300">
@@ -384,8 +619,12 @@ const WorkingHoursModal: React.FC<{ onClose: () => void; isOpen: boolean; onTogg
                     <X size={20} />
                 </button>
                 <h2 className="text-white font-bold text-lg italic">Çalışma Saatleri</h2>
-                <button onClick={onClose} className="p-2 px-4 rounded-xl bg-[#FFFF00] text-black font-bold text-xs flex items-center gap-2">
-                    <Save size={16} /> KAYDET
+                <button 
+                    onClick={handleSave} 
+                    disabled={isSaving}
+                    className="p-2 px-4 rounded-xl bg-[#FFFF00] text-black font-bold text-xs flex items-center gap-2 hover:bg-yellow-300 disabled:opacity-50"
+                >
+                    {isSaving ? '...' : <><Save size={16} /> KAYDET</>}
                 </button>
             </div>
 
@@ -424,22 +663,73 @@ const WorkingHoursModal: React.FC<{ onClose: () => void; isOpen: boolean; onTogg
     );
 };
 
-const EditFacilityModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-    const [facilityName, setFacilityName] = useState('Arena Sport Center');
-    const [description, setDescription] = useState('İstanbulun kalbinde, profesyonel standartlarda halı saha deneyimi. 7/24 açık, güvenli ve konforlu.');
-    const [images, setImages] = useState(PITCHES[0].images);
-    const [amenities, setAmenities] = useState(PITCHES[0].amenities);
+const EXTENDED_AMENITIES = [
+    'Duş', 'Otopark', 'Kafe', 'WiFi', 'Kamera Kaydı', 'Mescit', 'Krampon Kiralama', 'Büfe',
+    'Hakem', 'Kaleci', 'Top Kiralama', 'Forma Kiralama', 'Tribün', 'Engelli Erişimi', 'Kredi Kartı Geçerli',
+    'Yapay Çim', 'Doğal Çim', 'Kapalı Saha', 'Açık Saha', 'Isıtma', 'Soğutma', 'Soyunma Odası', 'Kilitli Dolap'
+];
+
+const EditFacilityModal: React.FC<{ onClose: () => void; facilityId: string; initialData?: any }> = ({ onClose, facilityId, initialData }) => {
+    const [activeTab, setActiveTab] = useState<'general' | 'amenities' | 'pitches'>('general');
+    
+    // General Info State
+    const [facilityName, setFacilityName] = useState(initialData?.name || 'Arena Sport Center');
+    const [description, setDescription] = useState(initialData?.description || 'İstanbulun kalbinde, profesyonel standartlarda halı saha deneyimi. 7/24 açık, güvenli ve konforlu.');
+    const [images, setImages] = useState(initialData?.images || PITCHES[0].images);
+
+    // Amenities State
+    const [amenities, setAmenities] = useState<string[]>(initialData?.amenities || PITCHES[0].amenities);
+    const [customAmenity, setCustomAmenity] = useState('');
+    const [availableAmenities, setAvailableAmenities] = useState<string[]>(EXTENDED_AMENITIES);
+
+    // Pitches State
+    const [pitches, setPitches] = useState(INTERNAL_PITCHES.map(p => ({
+        ...p,
+        description: '',
+        images: [] as string[]
+    })));
+    const [selectedPitchId, setSelectedPitchId] = useState(INTERNAL_PITCHES[0].id);
+
     const [isSaving, setIsSaving] = useState(false);
 
-    const handleRemoveImage = (index: number) => {
-        setImages(images.filter((_, i) => i !== index));
+    // --- Image Handlers ---
+    const handleRemoveImage = (index: number, pitchId?: string) => {
+        if (pitchId) {
+            setPitches(pitches.map(p => p.id === pitchId ? { ...p, images: p.images.filter((_, i) => i !== index) } : p));
+        } else {
+            setImages(images.filter((_, i) => i !== index));
+        }
     };
 
-    const handleAddImage = () => {
-        // Simulation of adding an image
-        setImages([...images, 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?auto=format&fit=crop&q=80&w=1000']);
+    const handleAddImage = (pitchId?: string) => {
+        const newImg = 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?auto=format&fit=crop&q=80&w=1000';
+        if (pitchId) {
+            setPitches(pitches.map(p => p.id === pitchId ? { ...p, images: [...p.images, newImg] } : p));
+        } else {
+            setImages([...images, newImg]);
+        }
     };
 
+    const moveImage = (index: number, direction: 'left' | 'right', pitchId?: string) => {
+        const targetArray = pitchId ? pitches.find(p => p.id === pitchId)?.images : images;
+        if (!targetArray) return;
+        
+        const newIndex = direction === 'left' ? index - 1 : index + 1;
+        if (newIndex < 0 || newIndex >= targetArray.length) return;
+
+        const newArray = [...targetArray];
+        const temp = newArray[index];
+        newArray[index] = newArray[newIndex];
+        newArray[newIndex] = temp;
+
+        if (pitchId) {
+            setPitches(pitches.map(p => p.id === pitchId ? { ...p, images: newArray } : p));
+        } else {
+            setImages(newArray);
+        }
+    };
+
+    // --- Amenity Handlers ---
     const toggleAmenity = (amenity: string) => {
         if (amenities.includes(amenity)) {
             setAmenities(amenities.filter(a => a !== amenity));
@@ -448,123 +738,286 @@ const EditFacilityModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         }
     };
 
-    const handleSave = () => {
-        setIsSaving(true);
-        setTimeout(() => {
-            setIsSaving(false);
-            onClose();
-        }, 1500);
+    const handleAddCustomAmenity = () => {
+        if (customAmenity.trim() && !availableAmenities.includes(customAmenity.trim())) {
+            setAvailableAmenities([...availableAmenities, customAmenity.trim()]);
+            setAmenities([...amenities, customAmenity.trim()]);
+            setCustomAmenity('');
+        }
     };
 
+    // --- Pitch Handlers ---
+    const updatePitchDescription = (id: string, desc: string) => {
+        setPitches(pitches.map(p => p.id === id ? { ...p, description: desc } : p));
+    };
+
+    const handleSave = async () => {
+        if (!facilityId) return;
+        setIsSaving(true);
+        try {
+            // Mock save
+            setTimeout(() => {
+                setIsSaving(false);
+                onClose();
+            }, 1000);
+        } catch (error) {
+            console.error("Tesis bilgileri kaydedilirken hata:", error);
+            setIsSaving(false);
+        }
+    };
+
+    const renderImageGallery = (imgArray: string[], pitchId?: string) => (
+        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
+            {/* Add Button */}
+            <button 
+                onClick={() => handleAddImage(pitchId)}
+                className="shrink-0 w-32 h-40 bg-[#161B22] border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-500 hover:text-white hover:border-white/30 transition-all snap-start"
+            >
+                <ImagePlus size={24} />
+                <span className="text-[10px] font-bold">FOTOĞRAF EKLE</span>
+            </button>
+
+            {imgArray.map((img, idx) => (
+                <div key={idx} className="shrink-0 w-64 h-40 relative rounded-2xl overflow-hidden group snap-center border border-white/5">
+                    <img src={img} className="w-full h-full object-cover" alt={`Gallery ${idx}`} />
+                    
+                    {/* Overlay Controls */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+                        <div className="flex justify-between w-full">
+                            <div className="flex gap-1">
+                                <button 
+                                    onClick={() => moveImage(idx, 'left', pitchId)}
+                                    disabled={idx === 0}
+                                    className="p-1.5 bg-black/50 text-white rounded-lg hover:bg-black/80 disabled:opacity-30"
+                                >
+                                    <ChevronLeft size={16} />
+                                </button>
+                                <button 
+                                    onClick={() => moveImage(idx, 'right', pitchId)}
+                                    disabled={idx === imgArray.length - 1}
+                                    className="p-1.5 bg-black/50 text-white rounded-lg hover:bg-black/80 disabled:opacity-30"
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
+                            <button 
+                                onClick={() => handleRemoveImage(idx, pitchId)}
+                                className="p-1.5 bg-red-500/80 text-white rounded-lg hover:bg-red-500"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+                        <div className="flex justify-center">
+                            <div className="bg-black/50 px-2 py-1 rounded text-[10px] font-bold text-white/70 flex items-center gap-1">
+                                <GripVertical size={12} /> Sürükle (Yakında)
+                            </div>
+                        </div>
+                    </div>
+                    {idx === 0 && !pitchId && <div className="absolute top-2 left-2 bg-[#FFFF00] text-black text-[9px] font-black px-2 py-0.5 rounded shadow-lg">KAPAK FOTOĞRAFI</div>}
+                </div>
+            ))}
+        </div>
+    );
+
     return (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-50 bg-[#0A0D14] flex flex-col animate-in slide-in-from-bottom-4 duration-300">
             {/* Header */}
-            <div className="bg-[#161B22] p-4 flex justify-between items-center border-b border-white/5 safe-area-top">
-                <button onClick={onClose} className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white">
-                    <X size={20} />
-                </button>
-                <h2 className="text-white font-bold text-lg">Halı Sahamı Düzenle</h2>
+            <div className="bg-[#161B22] p-4 flex justify-between items-center border-b border-white/5 safe-area-top shadow-lg z-10">
+                <div className="flex items-center gap-3">
+                    <button onClick={onClose} className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors">
+                        <X size={20} />
+                    </button>
+                    <h2 className="text-white font-bold text-lg">Tesis Yönetimi</h2>
+                </div>
                 <button 
                     onClick={handleSave} 
                     disabled={isSaving}
-                    className="p-2 px-4 rounded-xl bg-[#FFFF00] text-black font-bold text-xs flex items-center gap-2 hover:bg-yellow-300 disabled:opacity-50"
+                    className="px-6 py-2.5 rounded-xl bg-[#FFFF00] text-black font-bold text-sm flex items-center gap-2 hover:bg-yellow-300 disabled:opacity-50 transition-colors shadow-[0_0_15px_rgba(255,255,0,0.3)]"
                 >
-                    {isSaving ? '...' : <><Save size={16} /> KAYDET</>}
+                    {isSaving ? 'KAYDEDİLİYOR...' : <><Save size={18} /> DEĞİŞİKLİKLERİ KAYDET</>}
                 </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
-                
-                {/* 1. Photos */}
-                <section>
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-white flex items-center gap-2"><ImageIcon size={16} className="text-blue-400" /> FOTOĞRAFLAR</h3>
-                        <span className="text-[10px] text-gray-500">{images.length} Görsel</span>
-                    </div>
-                    
-                    <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
-                        {/* Add Button */}
-                        <button 
-                            onClick={handleAddImage}
-                            className="shrink-0 w-32 h-40 bg-[#161B22] border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-500 hover:text-white hover:border-white/30 transition-all snap-start"
-                        >
-                            <Camera size={24} />
-                            <span className="text-[10px] font-bold">EKLE</span>
-                        </button>
+            {/* Tabs */}
+            <div className="flex border-b border-white/5 bg-[#161B22] px-4">
+                <button 
+                    onClick={() => setActiveTab('general')}
+                    className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'general' ? 'border-[#FFFF00] text-[#FFFF00]' : 'border-transparent text-gray-400 hover:text-white'}`}
+                >
+                    Genel Bilgiler
+                </button>
+                <button 
+                    onClick={() => setActiveTab('amenities')}
+                    className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'amenities' ? 'border-[#FFFF00] text-[#FFFF00]' : 'border-transparent text-gray-400 hover:text-white'}`}
+                >
+                    İmkanlar & Hizmetler
+                </button>
+                <button 
+                    onClick={() => setActiveTab('pitches')}
+                    className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'pitches' ? 'border-[#FFFF00] text-[#FFFF00]' : 'border-transparent text-gray-400 hover:text-white'}`}
+                >
+                    Saha Detayları
+                </button>
+            </div>
 
-                        {images.map((img, idx) => (
-                            <div key={idx} className="shrink-0 w-64 h-40 relative rounded-2xl overflow-hidden group snap-center border border-white/5">
-                                <img src={img} className="w-full h-full object-cover" alt={`Pitch ${idx}`} />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-10 max-w-5xl mx-auto w-full">
+                
+                {/* TAB 1: GENERAL INFO */}
+                {activeTab === 'general' && (
+                    <div className="space-y-10 animate-in fade-in duration-300">
+                        <section>
+                            <div className="mb-6">
+                                <h3 className="text-xl font-bold text-white mb-1">Tesis Fotoğrafları</h3>
+                                <p className="text-sm text-gray-400">Tesisinizin genel görünümünü yansıtan fotoğraflar ekleyin. İlk fotoğraf kapak görseli olarak kullanılacaktır.</p>
+                            </div>
+                            {renderImageGallery(images)}
+                        </section>
+
+                        <section className="space-y-6">
+                            <div className="mb-6">
+                                <h3 className="text-xl font-bold text-white mb-1">Temel Bilgiler</h3>
+                                <p className="text-sm text-gray-400">Müşterilerin tesisinizi bulurken göreceği temel detaylar.</p>
+                            </div>
+                            <div className="bg-[#161B22] p-5 rounded-2xl border border-white/5 focus-within:border-white/20 transition-colors shadow-sm">
+                                <label className="text-xs font-bold text-gray-400 uppercase block mb-2">Tesis Adı</label>
+                                <input 
+                                    type="text" 
+                                    value={facilityName}
+                                    onChange={(e) => setFacilityName(e.target.value)}
+                                    className="w-full bg-transparent text-white font-bold text-lg outline-none placeholder:text-gray-600"
+                                    placeholder="Örn: Arena Sport Center"
+                                />
+                            </div>
+                            <div className="bg-[#161B22] p-5 rounded-2xl border border-white/5 focus-within:border-white/20 transition-colors shadow-sm">
+                                <label className="text-xs font-bold text-gray-400 uppercase block mb-2">Hakkımızda / Açıklama</label>
+                                <textarea 
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    rows={5}
+                                    className="w-full bg-transparent text-base text-gray-300 outline-none resize-none leading-relaxed placeholder:text-gray-600"
+                                    placeholder="Tesisinizi öne çıkaran özellikleri, konum avantajlarını ve genel atmosferi anlatın..."
+                                />
+                            </div>
+                        </section>
+                    </div>
+                )}
+
+                {/* TAB 2: AMENITIES */}
+                {activeTab === 'amenities' && (
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                        <div>
+                            <h3 className="text-xl font-bold text-white mb-1">Tesis İmkanları</h3>
+                            <p className="text-sm text-gray-400">Müşterilerinize sunduğunuz tüm hizmetleri ve olanakları seçin. Ne kadar çok imkan sunarsanız, o kadar çok tercih edilirsiniz.</p>
+                        </div>
+                        
+                        <div className="bg-[#161B22] p-6 rounded-3xl border border-white/5">
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {availableAmenities.map((item) => {
+                                    const isSelected = amenities.includes(item);
+                                    return (
+                                        <button
+                                            key={item}
+                                            onClick={() => toggleAmenity(item)}
+                                            className={`p-4 rounded-2xl flex items-center justify-between text-sm font-bold transition-all border ${
+                                                isSelected 
+                                                ? 'bg-green-500/10 text-green-400 border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.1)]' 
+                                                : 'bg-black/20 text-gray-400 border-white/5 hover:bg-white/5 hover:text-gray-200'
+                                            }`}
+                                        >
+                                            {item}
+                                            <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${isSelected ? 'bg-green-500 border-green-500 text-black' : 'border-gray-600'}`}>
+                                                {isSelected && <Check size={12} strokeWidth={3} />}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="mt-8 pt-8 border-t border-white/5">
+                                <h4 className="text-sm font-bold text-white mb-4">Listede Olmayan Bir İmkan Ekle</h4>
+                                <div className="flex gap-3">
+                                    <input 
+                                        type="text" 
+                                        value={customAmenity}
+                                        onChange={(e) => setCustomAmenity(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleAddCustomAmenity()}
+                                        placeholder="Örn: VIP Loca, Ücretsiz Çay..."
+                                        className="flex-1 bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-white/30 transition-colors"
+                                    />
                                     <button 
-                                        onClick={() => handleRemoveImage(idx)}
-                                        className="p-2 bg-red-500/80 text-white rounded-full hover:bg-red-500"
+                                        onClick={handleAddCustomAmenity}
+                                        disabled={!customAmenity.trim()}
+                                        className="px-6 py-3 bg-white/10 text-white font-bold text-sm rounded-xl hover:bg-white/20 transition-colors disabled:opacity-50 flex items-center gap-2"
                                     >
-                                        <Trash2 size={18} />
+                                        <Plus size={18} /> EKLE
                                     </button>
                                 </div>
-                                {idx === 0 && <div className="absolute top-2 left-2 bg-[#FFFF00] text-black text-[9px] font-black px-2 py-0.5 rounded">KAPAK</div>}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* TAB 3: PITCHES */}
+                {activeTab === 'pitches' && (
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                        <div>
+                            <h3 className="text-xl font-bold text-white mb-1">Saha Detayları</h3>
+                            <p className="text-sm text-gray-400">Tesisinizdeki her bir saha için özel fotoğraflar ve açıklamalar ekleyerek müşterilerinize daha net bilgi verin.</p>
+                        </div>
+
+                        <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                            {pitches.map(p => (
+                                <button
+                                    key={p.id}
+                                    onClick={() => setSelectedPitchId(p.id)}
+                                    className={`px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+                                        selectedPitchId === p.id 
+                                        ? 'bg-[#FFFF00] text-black shadow-[0_0_10px_rgba(255,255,0,0.2)]' 
+                                        : 'bg-[#161B22] text-gray-400 hover:bg-white/5 border border-white/5'
+                                    }`}
+                                >
+                                    {p.name}
+                                </button>
+                            ))}
+                        </div>
+
+                        {pitches.map(pitch => pitch.id === selectedPitchId && (
+                            <div key={pitch.id} className="bg-[#161B22] p-6 rounded-3xl border border-white/5 space-y-8 animate-in fade-in">
+                                <div>
+                                    <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                        <ImageIcon size={20} className="text-blue-400" /> 
+                                        {pitch.name} Fotoğrafları
+                                    </h4>
+                                    {renderImageGallery(pitch.images, pitch.id)}
+                                </div>
+
+                                <div>
+                                    <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                        <Type size={20} className="text-yellow-400" /> 
+                                        {pitch.name} Açıklaması
+                                    </h4>
+                                    <div className="bg-black/30 p-5 rounded-2xl border border-white/5 focus-within:border-white/20 transition-colors">
+                                        <textarea 
+                                            value={pitch.description}
+                                            onChange={(e) => updatePitchDescription(pitch.id, e.target.value)}
+                                            rows={4}
+                                            className="w-full bg-transparent text-sm text-gray-300 outline-none resize-none leading-relaxed placeholder:text-gray-600"
+                                            placeholder={`${pitch.name} için özel detaylar (örn: Yeni zemin, kapalı saha, tribün kapasitesi vs.)`}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         ))}
                     </div>
-                </section>
-
-                {/* 2. Basic Info */}
-                <section>
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2"><Type size={16} className="text-yellow-400" /> TEMEL BİLGİLER</h3>
-                    <div className="space-y-4">
-                        <div className="bg-[#161B22] p-4 rounded-2xl border border-white/5 focus-within:border-white/20 transition-colors">
-                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Tesis Adı</label>
-                            <input 
-                                type="text" 
-                                value={facilityName}
-                                onChange={(e) => setFacilityName(e.target.value)}
-                                className="w-full bg-transparent text-white font-bold outline-none"
-                            />
-                        </div>
-                        <div className="bg-[#161B22] p-4 rounded-2xl border border-white/5 focus-within:border-white/20 transition-colors">
-                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Açıklama</label>
-                            <textarea 
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                rows={4}
-                                className="w-full bg-transparent text-sm text-gray-300 outline-none resize-none leading-relaxed"
-                            />
-                        </div>
-                    </div>
-                </section>
-
-                {/* 3. Amenities */}
-                <section>
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2"><List size={16} className="text-green-400" /> İMKANLAR</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                        {AVAILABLE_AMENITIES.map((item) => {
-                            const isSelected = amenities.includes(item);
-                            return (
-                                <button
-                                    key={item}
-                                    onClick={() => toggleAmenity(item)}
-                                    className={`p-3 rounded-xl flex items-center justify-between text-xs font-bold transition-all border ${
-                                        isSelected 
-                                        ? 'bg-green-500/10 text-green-400 border-green-500/30' 
-                                        : 'bg-[#161B22] text-gray-500 border-white/5 hover:bg-white/5'
-                                    }`}
-                                >
-                                    {item}
-                                    {isSelected && <Check size={14} />}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </section>
-
+                )}
             </div>
         </div>
     );
 };
 
-const FinancialCalendarView = () => {
+const FinancialCalendarView: React.FC<{ facilityId: string }> = ({ facilityId }) => {
     const [selectedDate, setSelectedDate] = useState(0);
+    const [selectedMonthlyDay, setSelectedMonthlyDay] = useState(24);
     const [selectedPitchId, setSelectedPitchId] = useState(INTERNAL_PITCHES[0].id);
     const [selectedBooking, setSelectedBooking] = useState<CalendarBooking | null>(null);
     const [isQuickCreateOpen, setIsQuickCreateOpen] = useState<string | null>(null);
@@ -573,17 +1026,57 @@ const FinancialCalendarView = () => {
     const [specialRates, setSpecialRates] = useState<Record<string, number>>({});
     const [isMonthlyView, setIsMonthlyView] = useState(false);
     const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
+    const [realTimeSlots, setRealTimeSlots] = useState<any[]>([]);
+    const [isAddingSlot, setIsAddingSlot] = useState(false);
 
     const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
     const timeSlots = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}.00`);
 
+    // Mock slots
+    useEffect(() => {
+        setRealTimeSlots([]);
+    }, [facilityId]);
+
     const currentBookings = CALENDAR_BOOKINGS.filter(b => b.pitchId === selectedPitchId);
+    
+    // Combine mock bookings with real slots (for visualization)
+    const displaySlots = useMemo(() => {
+        const combined = [...currentBookings];
+        
+        // Add real slots that are not already in bookings
+        realTimeSlots.forEach(slot => {
+            const timeFormatted = slot.time.replace(':', '.');
+            if (!combined.find(b => b.time === timeFormatted)) {
+                // This is a free slot in our mock logic, but it exists in Firestore
+            }
+        });
+        
+        return combined;
+    }, [currentBookings, realTimeSlots]);
+
     const dailyCollected = currentBookings.reduce((acc, curr) => acc + curr.paid, 0);
     const dailyTotal = currentBookings.reduce((acc, curr) => acc + curr.price, 0);
     const dailyPending = dailyTotal - dailyCollected;
     const occupancyRate = Math.round((currentBookings.length / timeSlots.length) * 100);
 
     const getBooking = (time: string) => currentBookings.find(b => b.time === time || b.time === time.replace('.', ':'));
+    const getRealSlot = (time: string) => realTimeSlots.find(s => s.time === time.replace('.', ':'));
+
+    const handleQuickCreate = async (time: string) => {
+        if (!facilityId || isAddingSlot) return;
+        
+        setIsAddingSlot(true);
+        try {
+            // Mock slot creation
+            setTimeout(() => {
+                setIsAddingSlot(false);
+                setIsQuickCreateOpen(null);
+            }, 1000);
+        } catch (error) {
+            console.error("Slot eklenirken hata:", error);
+            setIsAddingSlot(false);
+        }
+    };
 
     const getStatusStyles = (status: string) => {
         switch(status) {
@@ -628,7 +1121,7 @@ const FinancialCalendarView = () => {
                             <button 
                                 key={i}
                                 onClick={() => setSelectedDate(i)}
-                                className={`flex-1 py-2 rounded-lg flex flex-col items-center gap-0.5 transition-all ${selectedDate === i ? 'bg-[#FFFF00] text-black shadow-lg scale-105' : 'bg-[#161B22] text-gray-500 hover:bg-white/5'}`}
+                                className={`flex-1 py-2 rounded-lg flex flex-col items-center gap-0.5 transition-all border ${selectedDate === i ? 'bg-white/10 text-white border-white/20 shadow-lg scale-105' : 'bg-[#161B22] border-transparent text-gray-500 hover:bg-white/5'}`}
                             >
                                 <span className="text-[9px] font-black uppercase">{d}</span>
                                 <span className="text-sm font-bold">{24 + i}</span>
@@ -679,18 +1172,18 @@ const FinancialCalendarView = () => {
                                 {Array.from({ length: 31 }, (_, i) => {
                                     const day = i + 1;
                                     const isToday = day === 24;
-                                    const hasBooking = [2, 5, 12, 18, 24, 25, 28].includes(day);
+                                    const isSelected = selectedMonthlyDay === day;
+                                    
                                     return (
                                         <button 
                                             key={i}
+                                            onClick={() => setSelectedMonthlyDay(day)}
                                             className={`aspect-square rounded-xl flex flex-col items-center justify-center relative transition-all border ${
-                                                isToday ? 'bg-[#FFFF00] text-black border-[#FFFF00] shadow-lg scale-110 z-10' : 
-                                                hasBooking ? 'bg-white/5 text-white border-white/10 hover:bg-white/10' : 
-                                                'text-gray-600 border-transparent hover:border-white/5'
+                                                isSelected ? 'bg-white/10 text-white border-white/30 shadow-lg scale-110 z-10' : 
+                                                'text-gray-500 border-transparent hover:bg-white/5'
                                             }`}
                                         >
-                                            <span className="text-xs font-bold">{day}</span>
-                                            {hasBooking && !isToday && <div className="w-1 h-1 bg-blue-500 rounded-full mt-1"></div>}
+                                            <span className={`text-xs font-bold ${isToday ? 'text-white' : ''}`}>{day}</span>
                                         </button>
                                     );
                                 })}
@@ -723,7 +1216,9 @@ const FinancialCalendarView = () => {
                 ) : (
                     timeSlots.map((time, idx) => {
                         const booking = getBooking(time);
-                        const styles = booking ? getStatusStyles(booking.status) : null;
+                        const isSub = booking?.type === 'SUB';
+                        const subStyles = { bg: 'bg-blue-900/30', border: 'border-blue-500/50', text: 'text-blue-400', bar: 'bg-blue-500' };
+                        const styles = booking ? (isSub ? subStyles : getStatusStyles(booking.status)) : null;
                         
                         const hour = parseInt(time.split('.')[0]);
                         let defaultPrice = 2000;
@@ -753,29 +1248,33 @@ const FinancialCalendarView = () => {
                                                 <p className="text-sm font-bold text-white leading-tight">{booking.user}</p>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${styles?.text} bg-black/20`}>
-                                                        {booking.status === 'PAID' ? 'ÖDENDİ' : booking.status === 'PARTIAL' ? 'KISMİ' : 'BORÇLU'}
+                                                        {booking.status === 'PAID' ? 'ÖDENDİ' : 'BEKLEYEN'}
                                                     </span>
                                                     {booking.note && <span className="text-[10px] text-gray-400 truncate max-w-[100px]">{booking.note}</span>}
                                                 </div>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-sm font-black text-white font-mono">{booking.price}₺</p>
-                                                {booking.paid < booking.price && (
-                                                    <p className="text-[10px] text-red-400 font-mono">-{booking.price - booking.paid}₺</p>
-                                                )}
                                             </div>
                                         </div>
                                     </button>
                                 ) : (
                                     <div className="flex gap-2 h-16 w-full">
                                         <button 
-                                            onClick={() => setIsQuickCreateOpen(time)}
-                                            className="flex-1 rounded-xl border-2 border-dashed border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all flex items-center justify-center gap-2 text-gray-600 hover:text-emerald-400 group/add relative overflow-hidden"
+                                            onClick={() => handleQuickCreate(time)}
+                                            disabled={isAddingSlot || getRealSlot(time) !== undefined}
+                                            className={`flex-1 rounded-xl border-2 border-dashed transition-all flex items-center justify-center gap-2 relative overflow-hidden ${
+                                                getRealSlot(time) 
+                                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                                                : 'border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/5 text-gray-600 hover:text-emerald-400 group/add'
+                                            }`}
                                         >
                                             <div className="relative z-10 flex flex-col items-center">
                                                 <div className="flex items-center gap-1">
-                                                    <Plus size={16} className="group-hover/add:scale-110 transition-transform" />
-                                                    <span className="text-xs font-bold uppercase tracking-wider">BOŞ</span>
+                                                    {getRealSlot(time) ? <CheckCircle2 size={16} /> : <Plus size={16} className="group-hover/add:scale-110 transition-transform" />}
+                                                    <span className="text-xs font-bold uppercase tracking-wider">
+                                                        {getRealSlot(time) ? 'YAYINDA' : 'BOŞ'}
+                                                    </span>
                                                 </div>
                                                 <span className="text-[10px] text-gray-500 font-mono mt-0.5">{currentPrice}₺</span>
                                             </div>
@@ -831,7 +1330,7 @@ const FinancialCalendarView = () => {
                                     Kapora
                                 </button>
                                 <button className="flex-1 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-xs font-bold hover:bg-red-500 hover:text-white transition-colors">
-                                    Borçlu
+                                    Ödeme Bekliyor
                                 </button>
                             </div>
                         </div>
@@ -1371,8 +1870,8 @@ const FinanceView: React.FC<{ hasDebt: boolean; isPayingDebt: boolean; onPayDebt
                                     <AreaChart data={WEEKLY_REVENUE_DATA}>
                                         <defs>
                                             <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#00F5FF" stopOpacity={0.3}/>
-                                                <stop offset="95%" stopColor="#00F5FF" stopOpacity={0}/>
+                                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                                             </linearGradient>
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
@@ -1387,7 +1886,7 @@ const FinanceView: React.FC<{ hasDebt: boolean; isPayingDebt: boolean; onPayDebt
                                         <Area 
                                             type="monotone" 
                                             dataKey="revenue" 
-                                            stroke="#00F5FF" 
+                                            stroke="#10b981" 
                                             strokeWidth={4}
                                             fillOpacity={1} 
                                             fill="url(#colorRev)" 
@@ -1694,6 +2193,7 @@ const MenuView: React.FC<{
     onLogout: () => void;
     notificationsEnabled: boolean;
     onToggleNotifications: () => void;
+    onWidgetSettings: () => void;
 }> = ({ 
     onNavigate, 
     onEditProfile, 
@@ -1702,7 +2202,8 @@ const MenuView: React.FC<{
     onPricingPolicy, 
     onLogout,
     notificationsEnabled,
-    onToggleNotifications
+    onToggleNotifications,
+    onWidgetSettings
 }) => {
     return (
         <div className="p-6 pb-32 overflow-y-auto custom-scrollbar animate-in slide-in-from-right-10 duration-500">
@@ -1787,9 +2288,9 @@ const MenuView: React.FC<{
                         >
                             <div className="flex items-center gap-3">
                                 <Banknote size={18} className="text-gray-400" />
-                                <span className="text-sm font-bold text-white">Banka Hesapları</span>
+                                <span className="text-sm font-bold text-white">Banka İşlemleri</span>
                             </div>
-                            <span className="text-[10px] text-gray-500">TR82...</span>
+                            <span className="text-[10px] text-gray-500">Para Çek</span>
                         </button>
                         <button 
                             onClick={onPricingPolicy}
@@ -1808,6 +2309,16 @@ const MenuView: React.FC<{
                 <section>
                     <h3 className="text-xs font-bold text-gray-500 uppercase mb-3 ml-1">UYGULAMA</h3>
                     <div className="bg-[#161B22] border border-white/5 rounded-[24px] overflow-hidden">
+                        <button 
+                            onClick={onWidgetSettings}
+                            className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors border-b border-white/5"
+                        >
+                            <div className="flex items-center gap-3">
+                                <LayoutDashboard size={18} className="text-gray-400" />
+                                <span className="text-sm font-bold text-white">Özet Widgetları</span>
+                            </div>
+                            <ChevronRight size={16} className="text-gray-600" />
+                        </button>
                         <button 
                             onClick={onToggleNotifications}
                             className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors border-b border-white/5"
@@ -1885,16 +2396,28 @@ const PitchOccupancyGrid: React.FC<{ data: typeof HOURLY_DATA }> = ({ data }) =>
                             </div>
                             <div className="flex-1 flex justify-between px-2 gap-1">
                                 {data.map((item, timeIdx) => {
-                                    const isOccupied = item.pitches[pitchIdx];
+                                    const bookingType = item.pitches[pitchIdx];
+                                    const isOccupied = bookingType !== null;
+                                    
+                                    let bgColor = 'bg-white/5';
+                                    let borderColor = 'border-white/5';
+                                    let shadow = '';
+                                    
+                                    if (bookingType === 'SUB') {
+                                        bgColor = 'bg-blue-500/40';
+                                        borderColor = 'border-blue-500/50';
+                                        shadow = 'shadow-[0_0_10px_rgba(59,130,246,0.2)]';
+                                    } else if (bookingType === 'DAILY') {
+                                        bgColor = 'bg-emerald-500/40';
+                                        borderColor = 'border-emerald-500/50';
+                                        shadow = 'shadow-[0_0_10px_rgba(16,185,129,0.2)]';
+                                    }
+
                                     return (
                                         <div 
                                             key={timeIdx}
-                                            className={`flex-1 h-8 rounded-md transition-all duration-300 border ${
-                                                isOccupied 
-                                                ? 'bg-indigo-500/40 border-indigo-500/50 shadow-[0_0_10px_rgba(99,102,241,0.2)]' 
-                                                : 'bg-white/5 border-white/5 hover:bg-white/10'
-                                            }`}
-                                            title={`${pitchName} - ${item.time}: ${isOccupied ? 'DOLU' : 'BOŞ'}`}
+                                            className={`flex-1 h-8 rounded-md transition-all duration-300 border ${bgColor} ${borderColor} ${shadow} ${!isOccupied ? 'hover:bg-white/10' : ''}`}
+                                            title={`${pitchName} - ${item.time}: ${bookingType === 'SUB' ? 'ABONMAN' : bookingType === 'DAILY' ? 'GÜNLÜK' : 'BOŞ'}`}
                                         ></div>
                                     );
                                 })}
@@ -1906,14 +2429,70 @@ const PitchOccupancyGrid: React.FC<{ data: typeof HOURLY_DATA }> = ({ data }) =>
                 {/* Legend */}
                 <div className="flex items-center gap-4 mt-6 px-2">
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-sm bg-indigo-500/40 border border-indigo-500/50"></div>
-                        <span className="text-[10px] font-bold text-gray-500 uppercase">Dolu</span>
+                        <div className="w-3 h-3 rounded-sm bg-blue-500/40 border border-blue-500/50"></div>
+                        <span className="text-[10px] font-bold text-gray-500 uppercase">Abonman</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-sm bg-emerald-500/40 border border-emerald-500/50"></div>
+                        <span className="text-[10px] font-bold text-gray-500 uppercase">Günlük</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-sm bg-white/5 border border-white/5"></div>
                         <span className="text-[10px] font-bold text-gray-500 uppercase">Boş</span>
                     </div>
                 </div>
+            </div>
+        </div>
+    );
+};
+
+const WidgetSettingsModal: React.FC<{
+    onClose: () => void;
+    activeWidgets: WidgetType[];
+    onToggleWidget: (widget: WidgetType) => void;
+}> = ({ onClose, activeWidgets, onToggleWidget }) => {
+    return (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
+            <div className="bg-[#161B22] w-full max-w-md rounded-[40px] border border-white/10 p-8 flex flex-col max-h-[90vh] animate-in zoom-in duration-300">
+                <div className="flex justify-between items-center mb-8">
+                    <h3 className="text-2xl font-black text-white italic tracking-tight">WİDGET AYARLARI</h3>
+                    <button onClick={onClose} className="p-2 bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors">
+                        <X size={20} />
+                    </button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
+                    {WIDGETS.map(widget => {
+                        const isActive = activeWidgets.includes(widget.id);
+                        const Icon = widget.icon;
+                        return (
+                            <div key={widget.id} className="bg-[#0A0E14] border border-white/5 p-4 rounded-2xl flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isActive ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-gray-500'}`}>
+                                        <Icon size={20} />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-white">{widget.title}</h4>
+                                        <p className="text-[10px] text-gray-500">{widget.description}</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => onToggleWidget(widget.id)}
+                                    className={`w-12 h-6 rounded-full relative transition-colors ${isActive ? 'bg-blue-500' : 'bg-gray-600'}`}
+                                >
+                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isActive ? 'right-1' : 'left-1'}`}></div>
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
+                
+                <button 
+                    onClick={onClose}
+                    className="w-full h-14 mt-6 bg-blue-600 text-white font-black text-lg rounded-2xl shadow-xl shadow-blue-900/20 hover:bg-blue-500 transition-all"
+                >
+                    KAYDET
+                </button>
             </div>
         </div>
     );
@@ -1932,7 +2511,68 @@ const OwnerPanel: React.FC<OwnerPanelProps> = ({ onBack, onNavigate }) => {
   const [showPricingPolicy, setShowPricingPolicy] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [activeWidgets, setActiveWidgets] = useState<WidgetType[]>([
+      'QUICK_STATS',
+      'QUICK_ACTIONS',
+      'OCCUPANCY_ANALYSIS',
+      'PENDING_REQUESTS',
+      'UPCOMING_MATCHES'
+  ]);
+  const [showWidgetSettings, setShowWidgetSettings] = useState(false);
+
+  const toggleWidget = (widget: WidgetType) => {
+      setActiveWidgets(prev => 
+          prev.includes(widget) 
+              ? prev.filter(w => w !== widget)
+              : [...prev, widget]
+      );
+  };
   const [isFacilityOpen, setIsFacilityOpen] = useState(true);
+
+  const [facilityData, setFacilityData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch facility data on mount
+  useEffect(() => {
+    // Firebase setup was declined or skipped, using mock mode
+    const uid = 'mock-user-id';
+    
+    // Use default mock data
+    const defaultData = {
+      ownerId: uid,
+      name: 'Arena Sport Center',
+      description: 'Tesis açıklaması buraya gelecek.',
+      images: [PITCHES[0].image],
+      amenities: ['Otopark', 'Kafe', 'Soyunma Odası', 'Duş'],
+      isFacilityOpen: true,
+      pricingPolicy: { daytime: 2000, prime: 3200, weekend: 3500 },
+      bankAccounts: [],
+      workingHours: [
+        { name: 'Pazartesi', open: '08:00', close: '00:00' },
+        { name: 'Salı', open: '08:00', close: '00:00' },
+        { name: 'Çarşamba', open: '08:00', close: '00:00' },
+        { name: 'Perşembe', open: '08:00', close: '00:00' },
+        { name: 'Cuma', open: '08:00', close: '02:00' },
+        { name: 'Cumartesi', open: '08:00', close: '02:00' },
+        { name: 'Pazar', open: '08:00', close: '00:00' },
+      ],
+      createdAt: new Date()
+    };
+    
+    setFacilityData({ id: 'mock-facility-id', ...defaultData });
+    setIsFacilityOpen(true);
+    setIsLoading(false);
+  }, []);
+
+  const toggleFacilityStatus = async () => {
+    if (!facilityData?.id) return;
+    
+    const newStatus = !isFacilityOpen;
+    setIsFacilityOpen(newStatus);
+    
+    // Mock update
+    console.log("Mock: Facility status updated to", newStatus);
+  };
 
   const handleProcessRequest = (id: string, action: 'APPROVE' | 'REJECT') => {
       setPendingRequests(prev => prev.filter(req => req.id !== id));
@@ -1980,60 +2620,119 @@ const OwnerPanel: React.FC<OwnerPanelProps> = ({ onBack, onNavigate }) => {
 
       {activeTab === 'HOME' && (
           <main className="flex-1 px-6 pt-6 overflow-y-auto custom-scrollbar pb-32">
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <button onClick={() => setShowRevenueModal(true)} className="text-left bg-gradient-to-br from-emerald-900/40 to-[#1A1F2C] p-5 rounded-2xl border border-emerald-500/20 relative overflow-hidden group hover:border-emerald-500/50 transition-all active:scale-95">
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity"><Wallet size={48} /></div>
-                    <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">Bugünkü Ciro <ArrowUpRight size={12} /></p>
-                    <h3 className="text-3xl font-black text-white mt-1 group-hover:text-emerald-300 transition-colors">13.600₺</h3>
-                    <div className="flex items-center gap-1 text-[10px] text-emerald-500 font-bold mt-2 bg-emerald-500/10 w-fit px-2 py-0.5 rounded-lg">
-                        <TrendingUp size={12} /> %12 Artış
-                    </div>
-                </button>
-                <button 
-                    onClick={() => setShowOccupancyModal(true)}
-                    className="bg-[#1A1F2C] p-5 rounded-2xl border border-white/5 relative overflow-hidden group hover:border-blue-500/50 transition-all active:scale-95 text-left"
-                >
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity"><Users size={48} /></div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1">Doluluk <ArrowUpRight size={12} /></p>
-                    <h3 className="text-3xl font-black text-white mt-1 group-hover:text-blue-300 transition-colors">%78</h3>
-                    <div className="flex items-center gap-1 text-[10px] text-gray-500 font-bold mt-2">4 Saat Boş</div>
-                </button>
-              </div>
+              {activeWidgets.includes('QUICK_STATS') && (
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <button onClick={() => setShowRevenueModal(true)} className="text-left bg-gradient-to-br from-emerald-900/40 to-[#1A1F2C] p-5 rounded-2xl border border-emerald-500/20 relative overflow-hidden group hover:border-emerald-500/50 transition-all active:scale-95">
+                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity"><Wallet size={48} /></div>
+                        <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">Bugünkü Ciro <ArrowUpRight size={12} /></p>
+                        <h3 className="text-3xl font-black text-white mt-1 group-hover:text-emerald-300 transition-colors">13.600₺</h3>
+                        <div className="flex items-center gap-1 text-[10px] text-emerald-500 font-bold mt-2 bg-emerald-500/10 w-fit px-2 py-0.5 rounded-lg">
+                            <TrendingUp size={12} /> %12 Artış
+                        </div>
+                    </button>
+                    <button 
+                        onClick={() => setShowOccupancyModal(true)}
+                        className="bg-[#1A1F2C] p-5 rounded-2xl border border-white/5 relative overflow-hidden group hover:border-emerald-500/50 transition-all active:scale-95 text-left"
+                    >
+                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity"><Users size={48} /></div>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1">Doluluk <ArrowUpRight size={12} /></p>
+                        <h3 className={`text-3xl font-black mt-1 transition-colors ${78 < 50 ? 'text-red-500 group-hover:text-red-400' : 'text-emerald-500 group-hover:text-emerald-400'}`}>%78</h3>
+                        <div className="flex items-center gap-1 text-[10px] text-gray-500 font-bold mt-2">4 Saat Boş</div>
+                    </button>
+                  </div>
+              )}
 
               {/* Quick Actions */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <button 
-                  onClick={() => onNavigate('QR_SCANNER')}
-                  className="flex flex-col items-center justify-center p-6 bg-blue-600 rounded-3xl border border-blue-400/30 shadow-xl shadow-blue-900/20 group hover:bg-blue-500 transition-all active:scale-95"
-                >
-                  <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                    <QrCode size={24} className="text-white" />
+              {activeWidgets.includes('QUICK_ACTIONS') && (
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <button 
+                      onClick={() => onNavigate('QR_SCANNER')}
+                      className="flex flex-col items-center justify-center p-6 bg-blue-600 rounded-3xl border border-blue-400/30 shadow-xl shadow-blue-900/20 group hover:bg-blue-500 transition-all active:scale-95"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <QrCode size={24} className="text-white" />
+                      </div>
+                      <span className="text-sm font-black italic text-white">QR OKUT</span>
+                      <span className="text-[10px] font-bold text-blue-100 mt-1 uppercase tracking-widest">Skor Girişi</span>
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('CALENDAR')}
+                      className="flex flex-col items-center justify-center p-6 bg-[#161B22] rounded-3xl border border-white/5 hover:border-white/10 transition-all group active:scale-95"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <Plus size={24} className="text-white" />
+                      </div>
+                      <span className="text-sm font-black italic text-white">YENİ KAYIT</span>
+                      <span className="text-[10px] font-bold text-gray-500 mt-1 uppercase tracking-widest">Rezervasyon</span>
+                    </button>
                   </div>
-                  <span className="text-sm font-black italic text-white">QR OKUT</span>
-                  <span className="text-[10px] font-bold text-blue-100 mt-1 uppercase tracking-widest">Skor Girişi</span>
-                </button>
-                <button 
-                  onClick={() => setActiveTab('CALENDAR')}
-                  className="flex flex-col items-center justify-center p-6 bg-[#161B22] rounded-3xl border border-white/5 hover:border-white/10 transition-all group active:scale-95"
-                >
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                    <Plus size={24} className="text-white" />
-                  </div>
-                  <span className="text-sm font-black italic text-white">YENİ KAYIT</span>
-                  <span className="text-[10px] font-bold text-gray-500 mt-1 uppercase tracking-widest">Rezervasyon</span>
-                </button>
-              </div>
+              )}
 
-              <div className="bg-[#161B22] border border-white/5 rounded-2xl p-6 mb-6 shadow-xl relative overflow-hidden">
-                <h3 className="font-bold text-white text-base flex items-center gap-2 mb-6">
-                    <BarChart3 size={18} className="text-indigo-500" /> Saha Doluluk Analizi
-                </h3>
-                <PitchOccupancyGrid data={HOURLY_DATA} />
-              </div>
+              {activeWidgets.includes('OCCUPANCY_ANALYSIS') && (
+                  <div className="bg-[#161B22] border border-white/5 rounded-2xl p-6 mb-6 shadow-xl relative overflow-hidden">
+                    <h3 className="font-bold text-white text-base flex items-center gap-2 mb-6">
+                        <BarChart3 size={18} className="text-indigo-500" /> Saha Doluluk Analizi
+                    </h3>
+                    <PitchOccupancyGrid data={HOURLY_DATA} />
+                  </div>
+              )}
+
+              {activeWidgets.includes('PENDING_REQUESTS') && (
+                  <div className="bg-[#161B22] border border-white/5 rounded-2xl p-6 mb-6 shadow-xl relative overflow-hidden">
+                      <h3 className="font-bold text-white text-base flex items-center gap-2 mb-4">
+                          <Clock size={18} className="text-yellow-500" /> Onay Bekleyen Talepler
+                      </h3>
+                      {pendingRequests.length > 0 ? (
+                          <div className="space-y-3">
+                              {pendingRequests.slice(0, 3).map(req => (
+                                  <div key={req.id} className="bg-[#0A0E14] border border-white/5 p-4 rounded-xl flex justify-between items-center">
+                                      <div>
+                                          <p className="text-sm font-bold text-white">{req.userName}</p>
+                                          <p className="text-xs text-gray-400">{req.date} • {req.time}</p>
+                                      </div>
+                                      <div className="flex gap-2">
+                                          <button onClick={() => handleProcessRequest(req.id, 'APPROVE')} className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30"><Check size={16} /></button>
+                                          <button onClick={() => handleProcessRequest(req.id, 'REJECT')} className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"><X size={16} /></button>
+                                      </div>
+                                  </div>
+                              ))}
+                              {pendingRequests.length > 3 && (
+                                  <button onClick={() => setActiveTab('PENDING_ACTIONS')} className="w-full py-2 text-xs font-bold text-blue-400 hover:text-blue-300 text-center">Tümünü Gör ({pendingRequests.length})</button>
+                              )}
+                          </div>
+                      ) : (
+                          <p className="text-sm text-gray-500 text-center py-4">Bekleyen talep bulunmuyor.</p>
+                      )}
+                  </div>
+              )}
+
+              {activeWidgets.includes('UPCOMING_MATCHES') && (
+                  <div className="bg-[#161B22] border border-white/5 rounded-2xl p-6 mb-6 shadow-xl relative overflow-hidden">
+                      <h3 className="font-bold text-white text-base flex items-center gap-2 mb-4">
+                          <Calendar size={18} className="text-blue-500" /> Yaklaşan Maçlar
+                      </h3>
+                      <div className="space-y-3">
+                          <div className="bg-[#0A0E14] border border-white/5 p-4 rounded-xl flex justify-between items-center">
+                              <div>
+                                  <p className="text-sm font-bold text-white">Saha 1</p>
+                                  <p className="text-xs text-gray-400">Bugün • 20:00 - 21:00</p>
+                              </div>
+                              <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-bold rounded-lg">Ödendi</span>
+                          </div>
+                          <div className="bg-[#0A0E14] border border-white/5 p-4 rounded-xl flex justify-between items-center">
+                              <div>
+                                  <p className="text-sm font-bold text-white">Saha 2</p>
+                                  <p className="text-xs text-gray-400">Bugün • 21:00 - 22:00</p>
+                              </div>
+                              <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-[10px] font-bold rounded-lg">Kapora</span>
+                          </div>
+                      </div>
+                  </div>
+              )}
           </main>
       )}
 
-      {activeTab === 'CALENDAR' && <FinancialCalendarView />}
+      {activeTab === 'CALENDAR' && <FinancialCalendarView facilityId={facilityData?.id} />}
       {activeTab === 'FINANCE' && <FinanceView hasDebt={hasDebt} isPayingDebt={isPayingDebt} onPayDebt={handlePayDebt} />}
       {activeTab === 'TEAM' && <TeamView />}
       {activeTab === 'MORE' && (
@@ -2046,20 +2745,47 @@ const OwnerPanel: React.FC<OwnerPanelProps> = ({ onBack, onNavigate }) => {
             onLogout={() => setShowLogoutConfirm(true)}
             notificationsEnabled={notificationsEnabled}
             onToggleNotifications={() => setNotificationsEnabled(!notificationsEnabled)}
+            onWidgetSettings={() => setShowWidgetSettings(true)}
         />
       )}
 
       {/* MODALS */}
-      {showEditProfile && <EditFacilityModal onClose={() => setShowEditProfile(false)} />}
+      {showEditProfile && (
+        <EditFacilityModal 
+          onClose={() => setShowEditProfile(false)} 
+          facilityId={facilityData?.id} 
+          initialData={facilityData}
+        />
+      )}
       {showWorkingHours && (
           <WorkingHoursModal 
             onClose={() => setShowWorkingHours(false)} 
+            facilityId={facilityData?.id}
             isOpen={isFacilityOpen} 
-            onToggleOpen={() => setIsFacilityOpen(!isFacilityOpen)} 
+            onToggleOpen={toggleFacilityStatus} 
+            initialHours={facilityData?.workingHours}
           />
       )}
-      {showBankAccounts && <BankAccountsModal onClose={() => setShowBankAccounts(false)} />}
-      {showPricingPolicy && <PricingPolicyModal onClose={() => setShowPricingPolicy(false)} />}
+      {showBankAccounts && (
+        <BankOperationsModal 
+          onClose={() => setShowBankAccounts(false)} 
+          facilityId={facilityData?.id}
+        />
+      )}
+      {showPricingPolicy && (
+        <PricingPolicyModal 
+          onClose={() => setShowPricingPolicy(false)} 
+          facilityId={facilityData?.id}
+          initialPrices={facilityData?.pricingPolicy}
+        />
+      )}
+      {showWidgetSettings && (
+        <WidgetSettingsModal 
+            onClose={() => setShowWidgetSettings(false)}
+            activeWidgets={activeWidgets}
+            onToggleWidget={toggleWidget}
+        />
+      )}
       {showLogoutConfirm && <LogoutConfirmationModal onClose={() => setShowLogoutConfirm(false)} onConfirm={() => onBack()} />}
 
       {showRevenueModal && (
@@ -2071,20 +2797,20 @@ const OwnerPanel: React.FC<OwnerPanelProps> = ({ onBack, onNavigate }) => {
                   </div>
                   <div className="space-y-4">
                       {[
-                          { label: 'Saha 1', amount: 5200, color: 'text-blue-400' },
-                          { label: 'Saha 2', amount: 4800, color: 'text-emerald-400' },
-                          { label: 'Saha 3', amount: 2400, color: 'text-purple-400' },
-                          { label: 'Saha 4', amount: 3100, color: 'text-yellow-400' },
-                          { label: 'Kafeterya', amount: 1200, color: 'text-orange-400' }
+                          { label: 'Saha 1', amount: 5200 },
+                          { label: 'Saha 2', amount: 4800 },
+                          { label: 'Saha 3', amount: 2400 },
+                          { label: 'Saha 4', amount: 3100 },
+                          { label: 'Kafeterya', amount: 1200 }
                       ].map((item, idx) => (
                           <div key={idx} className="bg-[#0A0E14] p-4 rounded-2xl border border-white/5 flex justify-between items-center">
                               <span className="text-sm font-bold text-gray-400">{item.label}</span>
-                              <span className={`text-lg font-black ${item.color}`}>{item.amount.toLocaleString()}₺</span>
+                              <span className="text-lg font-black text-emerald-400">{item.amount.toLocaleString()}₺</span>
                           </div>
                       ))}
                       <div className="pt-4 border-t border-white/10 flex justify-between items-center">
                           <span className="text-base font-black text-white">TOPLAM</span>
-                          <span className="text-2xl font-black text-[#FFFF00]">13.600₺</span>
+                          <span className="text-2xl font-black text-emerald-500">13.600₺</span>
                       </div>
                   </div>
               </div>
@@ -2100,18 +2826,18 @@ const OwnerPanel: React.FC<OwnerPanelProps> = ({ onBack, onNavigate }) => {
                   </div>
                   <div className="space-y-6">
                       {[
-                          { label: 'Saha 1', value: 85, color: 'bg-blue-500' },
-                          { label: 'Saha 2', value: 70, color: 'bg-emerald-500' },
-                          { label: 'Saha 3', value: 45, color: 'bg-purple-500' },
-                          { label: 'Saha 4', value: 60, color: 'bg-yellow-500' }
+                          { label: 'Saha 1', value: 85 },
+                          { label: 'Saha 2', value: 70 },
+                          { label: 'Saha 3', value: 45 },
+                          { label: 'Saha 4', value: 60 }
                       ].map((item, idx) => (
                           <div key={idx} className="space-y-2">
                               <div className="flex justify-between items-end">
                                   <span className="text-sm font-bold text-white">{item.label}</span>
-                                  <span className="text-sm font-black text-white">%{item.value}</span>
+                                  <span className={`text-sm font-black ${item.value < 50 ? 'text-red-500' : 'text-emerald-500'}`}>%{item.value}</span>
                               </div>
                               <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden">
-                                  <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.value}%` }}></div>
+                                  <div className={`h-full rounded-full transition-all duration-500 ${item.value < 50 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${item.value}%` }}></div>
                               </div>
                           </div>
                       ))}

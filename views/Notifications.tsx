@@ -10,43 +10,43 @@ const Notifications: React.FC<NotificationsProps> = ({ onBack }) => {
   const notifs = [
       {
           id: 1,
-          type: 'INVITE',
-          title: 'Maç Daveti',
-          desc: 'Yıldızlar FC seni bu akşamki maça davet etti.',
-          time: '15 dk önce',
-          icon: <Trophy size={20} />,
+          type: 'PAYMENT_RECEIVED',
+          title: 'Ödeme Alındı',
+          desc: 'Bu akşam 20:00 - 21:00 maçı için ödeme tamamlandı.',
+          time: '10 dk önce',
+          icon: <CreditCard size={20} />,
+          color: 'bg-green-500',
+          textColor: 'text-green-500'
+      },
+      {
+          id: 2,
+          type: 'PAYMENT_PENDING',
+          title: 'Ödeme Bekleniyor',
+          desc: 'Bu gece 23:00 - 00:00 maçı için henüz ödeme yapılmadı.',
+          time: '1 saat önce',
+          icon: <Calendar size={20} />,
           color: 'bg-yellow-500',
           textColor: 'text-yellow-500'
       },
       {
-          id: 2,
-          type: 'PAYMENT',
-          title: 'Ödeme Hatırlatması',
-          desc: 'Yarınki maç için kaporanın son 2 saati!',
-          time: '2 saat önce',
-          icon: <CreditCard size={20} />,
-          color: 'bg-red-500',
-          textColor: 'text-red-500'
-      },
-      {
           id: 3,
-          type: 'RATING',
-          title: 'Maçı Puanla',
-          desc: 'Dünkü maç nasıldı? Sahayı ve kaleciyi puanla.',
-          time: 'Dün',
-          icon: <Star size={20} />,
-          color: 'bg-blue-500',
-          textColor: 'text-blue-500'
+          type: 'PAYMENT_RECEIVED',
+          title: 'Ödeme Alındı',
+          desc: 'Yarın 19:00 - 20:00 maçı için kapora yatırıldı.',
+          time: '3 saat önce',
+          icon: <CreditCard size={20} />,
+          color: 'bg-green-500',
+          textColor: 'text-green-500'
       },
       {
           id: 4,
           type: 'SYSTEM',
-          title: 'Yeni Özellik',
-          desc: 'Artık detaylı maç istatistiklerine erişebilirsin.',
-          time: '2 gün önce',
+          title: 'Saha Doluluk Uyarısı',
+          desc: 'Hafta sonu için doluluk oranınız %80\'e ulaştı.',
+          time: 'Dün',
           icon: <Bell size={20} />,
-          color: 'bg-gray-500',
-          textColor: 'text-gray-500'
+          color: 'bg-blue-500',
+          textColor: 'text-blue-500'
       }
   ];
 

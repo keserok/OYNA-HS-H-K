@@ -1,9 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserRole, AppView, Goalkeeper } from './types';
 import { GOALKEEPERS } from './constants';
 import SplashScreen from './views/SplashScreen';
-import AuthScreen from './views/AuthScreen';
 import RoleSelection from './views/RoleSelection';
 import Marketplace from './views/Marketplace';
 import OwnerPanel from './views/OwnerPanel';
@@ -25,6 +24,7 @@ import { Match } from './types';
 const App: React.FC = () => {
   const [view, setView] = useState<AppView>('SPLASH');
   const [role, setRole] = useState<UserRole | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
   // Dynamic Data States
   const [availableGoalkeepers, setAvailableGoalkeepers] = useState<Goalkeeper[]>(GOALKEEPERS);
@@ -35,6 +35,14 @@ const App: React.FC = () => {
 
   // Mock state for Match Diary Detail
   const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Simulate auth check
+    const timer = setTimeout(() => {
+      setIsAuthReady(true);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleRoleSelect = (selectedRole: UserRole, data?: any) => {
     setRole(selectedRole);
@@ -68,17 +76,21 @@ const App: React.FC = () => {
   };
 
   const renderView = () => {
+    if (!isAuthReady && view !== 'SPLASH') {
+        return <div className="min-h-screen flex items-center justify-center bg-[#0A0E14]">
+            <div className="w-12 h-12 border-4 border-[#FFFF00] border-t-transparent rounded-full animate-spin"></div>
+        </div>;
+    }
+
     switch (view) {
       case 'SPLASH':
-        return <SplashScreen onStart={() => setView('AUTH')} />;
-      case 'AUTH':
-        return <AuthScreen onSuccess={() => setView('ROLE_SELECTION')} onBack={() => setView('SPLASH')} />;
+        return <SplashScreen onStart={() => setView('ROLE_SELECTION')} />;
       case 'LOCATION_PROMPT':
         return <LocationPrompt onPermissionGranted={() => setView('ROLE_SELECTION')} onSkip={() => setView('ROLE_SELECTION')} />;
       case 'ROLE_SELECTION':
         return <RoleSelection 
           onSelect={handleRoleSelect} 
-          onBack={() => setView('AUTH')} 
+          onBack={() => setView('SPLASH')} 
           onPartnerInvite={() => setView('PARTNER_ONBOARDING')}
         />;
       case 'OWNER_PANEL':

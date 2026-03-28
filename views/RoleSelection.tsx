@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserRole } from '../types';
-import { Trophy, Shield, Scale, Building2, User, Mail, Smartphone, ArrowLeft, ArrowRight, Calendar, Ruler, Weight, Target, Check, Sparkles, Activity, Fingerprint } from 'lucide-react';
+import { Trophy, Shield, Scale, Building2, User, Mail, Smartphone, ArrowLeft, ArrowRight, Calendar, Ruler, Weight, Target, Check, Sparkles, Activity, Fingerprint, FileText, Lock } from 'lucide-react';
 
 interface RoleSelectionProps {
   onSelect: (role: UserRole, data?: any) => void;
@@ -61,7 +61,8 @@ const RoleHeroCard: React.FC<{
 
 const RoleSelection: React.FC<RoleSelectionProps> = ({ onSelect, onBack, onPartnerInvite }) => {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const [step, setStep] = useState<1 | 2 | 3>(1); // 1: Role, 2: Contact, 3: Physical
+  const [subAction, setSubAction] = useState<'APPLY' | 'LOGIN' | 'PATRON' | 'MANAGER' | null>(null);
+  const [formStep, setFormStep] = useState<1 | 2>(1);
   const [isVerifying, setIsVerifying] = useState(false);
   
   // Data States
@@ -69,116 +70,457 @@ const RoleSelection: React.FC<RoleSelectionProps> = ({ onSelect, onBack, onPartn
       fullName: '',
       phone: '',
       email: '',
-      tcNumber: '', // Added for Ref/Owner
-      age: '',
+      tcNumber: '',
+      password: '',
       height: '',
       weight: '',
-      position: ''
+      experience: '',
+      intentLetter: '',
+      smsCode: '',
+      rememberMe: false
   });
 
   const handleCardClick = (role: UserRole) => {
     setSelectedRole(role);
-    setStep(2);
+    setFormStep(1);
+    setSubAction(null);
   };
 
   const handleBack = () => {
-    if (step === 3) {
-        setStep(2);
-    } else if (step === 2) {
-        setStep(1);
+    if (formStep === 2) {
+        setFormStep(1);
+    } else if (subAction) {
+        setSubAction(null);
+    } else if (selectedRole) {
         setSelectedRole(null);
     } else {
         onBack();
     }
   };
 
-  // Determine if this is a "Professional" role (Ref/Owner) that skips physical attributes
-  const isProfessionalRole = selectedRole === UserRole.REFEREE || selectedRole === UserRole.OWNER;
-
-  const handleNextAction = () => {
-      if (isProfessionalRole) {
-          // For Pros: Step 2 is the final step. Validate TC & Phone then complete.
-          if (formData.tcNumber && formData.phone) {
-              handleComplete();
-          }
-      } else {
-          // For GK: Go to Step 3 (Physical Attributes)
-          if (formData.fullName && formData.phone) {
-              setStep(3);
-          }
-      }
+  const handleNextStep = () => {
+      setFormStep(2);
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (selectedRole) {
        setIsVerifying(true);
-       setTimeout(() => {
-           onSelect(selectedRole, formData);
-       }, 1500);
+       try {
+           // Mock completion simulation
+           setTimeout(() => {
+               setIsVerifying(false);
+               onSelect(selectedRole, formData);
+           }, 1500);
+       } catch (error) {
+           console.error("Error saving profile:", error);
+           alert("İşlem sırasında bir hata oluştu.");
+       }
     }
   };
 
   const getRoleTheme = () => {
       switch(selectedRole) {
-          case UserRole.OWNER: return { color: 'text-blue-400', border: 'border-blue-500', bg: 'bg-blue-600' };
-          case UserRole.REFEREE: return { color: 'text-red-500', border: 'border-red-500', bg: 'bg-red-600' };
-          case UserRole.GOALKEEPER: return { color: 'text-green-400', border: 'border-green-500', bg: 'bg-green-600' };
-          default: return { color: 'text-[#FFFF00]', border: 'border-[#FFFF00]', bg: 'bg-[#FFFF00]' };
+          case UserRole.OWNER: return { color: 'text-blue-400', border: 'border-blue-500', bg: 'bg-blue-600', glow: 'shadow-blue-500/20' };
+          case UserRole.REFEREE: return { color: 'text-red-500', border: 'border-red-500', bg: 'bg-red-600', glow: 'shadow-red-500/20' };
+          case UserRole.GOALKEEPER: return { color: 'text-green-400', border: 'border-green-500', bg: 'bg-green-600', glow: 'shadow-green-500/20' };
+          default: return { color: 'text-[#FFFF00]', border: 'border-[#FFFF00]', bg: 'bg-[#FFFF00]', glow: 'shadow-yellow-500/20' };
       }
   };
 
   const theme = getRoleTheme();
 
-  // --- STEP 2 & 3 CONTAINER ---
-  if (step > 1) {
+  // --- SUB-ACTION SELECTION (APPLY OR LOGIN OR OWNER TYPES) ---
+  if (selectedRole && !subAction) {
+    const isOwner = selectedRole === UserRole.OWNER;
+    
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#0A0E14] relative overflow-hidden">
-         {/* Background Grid */}
          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-         
-         {/* Dynamic Glow */}
          <div className={`absolute top-[-20%] right-[-20%] w-[500px] h-[500px] blur-[150px] rounded-full opacity-20 pointer-events-none ${theme.bg}`}></div>
 
          <div className="w-full max-w-md bg-[#161B22]/90 backdrop-blur-2xl rounded-[40px] border border-white/10 p-8 relative animate-in zoom-in duration-300 shadow-2xl z-10">
+            <button onClick={handleBack} className="mb-8 p-3 bg-[#0A0E14] rounded-full text-white border border-white/5 hover:border-white/20 transition-colors">
+                <ArrowLeft size={20} />
+            </button>
+
+            <div className="mb-10 text-center">
+                <div className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center mb-6 border border-white/10 ${theme.bg} ${theme.color} shadow-2xl`}>
+                    {selectedRole === UserRole.GOALKEEPER ? <Shield size={40} /> : selectedRole === UserRole.REFEREE ? <Scale size={40} /> : <Building2 size={40} />}
+                </div>
+                <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">
+                    {selectedRole === UserRole.GOALKEEPER ? 'KALECİ' : selectedRole === UserRole.REFEREE ? 'HAKEM' : 'TESİS'}
+                </h2>
+                <p className="text-gray-400 text-sm font-medium">Devam etmek için bir yöntem seçin.</p>
+            </div>
+
+            <div className="space-y-4">
+                {isOwner ? (
+                    <>
+                        <button 
+                            onClick={() => setSubAction('PATRON')}
+                            className={`w-full h-20 rounded-2xl border border-white/5 bg-[#0A0E14] flex items-center justify-between px-8 group hover:border-white/20 transition-all duration-300`}
+                        >
+                            <div className="flex flex-col items-start">
+                                <span className="text-white font-black text-xl italic uppercase">PATRON</span>
+                                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">YÖNETİCİ GİRİŞİ</span>
+                            </div>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${theme.bg} text-white group-hover:scale-110 transition-transform`}>
+                                <ArrowRight size={20} />
+                            </div>
+                        </button>
+
+                        <button 
+                            onClick={() => setSubAction('MANAGER')}
+                            className={`w-full h-20 rounded-2xl border border-white/5 bg-[#0A0E14] flex items-center justify-between px-8 group hover:border-white/20 transition-all duration-300`}
+                        >
+                            <div className="flex flex-col items-start">
+                                <span className="text-white font-black text-xl italic uppercase">İŞLETME</span>
+                                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">PERSONEL GİRİŞİ</span>
+                            </div>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border border-white/10 text-white group-hover:scale-110 transition-transform`}>
+                                <Lock size={20} />
+                            </div>
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        <button 
+                            onClick={() => setSubAction('APPLY')}
+                            className={`w-full h-20 rounded-2xl border border-white/5 bg-[#0A0E14] flex items-center justify-between px-8 group hover:border-white/20 transition-all duration-300`}
+                        >
+                            <div className="flex flex-col items-start">
+                                <span className="text-white font-black text-xl italic">BAŞVURU YAP</span>
+                                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">YENİ KAYIT</span>
+                            </div>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${theme.bg} text-white group-hover:scale-110 transition-transform`}>
+                                <ArrowRight size={20} />
+                            </div>
+                        </button>
+
+                        <button 
+                            onClick={() => setSubAction('LOGIN')}
+                            className={`w-full h-20 rounded-2xl border border-white/5 bg-[#0A0E14] flex items-center justify-between px-8 group hover:border-white/20 transition-all duration-300`}
+                        >
+                            <div className="flex flex-col items-start">
+                                <span className="text-white font-black text-xl italic">GİRİŞ YAP</span>
+                                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">MEVCUT HESAP</span>
+                            </div>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border border-white/10 text-white group-hover:scale-110 transition-transform`}>
+                                <Lock size={20} />
+                            </div>
+                        </button>
+                    </>
+                )}
+            </div>
+         </div>
+      </div>
+    );
+  }
+
+  // --- FORM VIEW (APPLY OR LOGIN OR OWNER TYPES) ---
+  if (selectedRole && subAction) {
+    const isApply = subAction === 'APPLY';
+    const isPatron = subAction === 'PATRON';
+    const isManager = subAction === 'MANAGER';
+    const isOwnerLogin = isPatron || isManager;
+    
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-start p-6 bg-[#0A0E14] relative overflow-y-auto custom-scrollbar">
+         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] fixed"></div>
+         
+         <div className="w-full max-w-md bg-[#161B22]/90 backdrop-blur-2xl rounded-[40px] border border-white/10 p-8 relative animate-in slide-in-from-bottom-10 duration-500 shadow-2xl z-10 my-10">
             
-            {/* Header / Back */}
             <div className="flex justify-between items-center mb-8">
                 <button onClick={handleBack} className="p-3 bg-[#0A0E14] rounded-full text-white border border-white/5 hover:border-white/20 transition-colors">
                    <ArrowLeft size={20} />
                 </button>
                 <div className="flex items-center gap-2">
-                    <div className={`h-1.5 w-12 rounded-full transition-colors ${step === 2 ? theme.bg : 'bg-gray-800'}`}></div>
-                    {!isProfessionalRole && (
-                        <div className={`h-1.5 w-12 rounded-full transition-colors ${step === 3 ? theme.bg : 'bg-gray-800'}`}></div>
-                    )}
+                    <div className={`h-1 w-8 rounded-full transition-all duration-300 ${formStep === 1 ? theme.bg : 'bg-white/10'}`}></div>
+                    <div className={`h-1 w-8 rounded-full transition-all duration-300 ${formStep === 2 ? theme.bg : 'bg-white/10'}`}></div>
                 </div>
                 <div className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg bg-[#0A0E14] border ${theme.border} ${theme.color}`}>
-                    {selectedRole}
+                    {selectedRole} / {subAction}
                 </div>
             </div>
-            
+
             <div className="mb-8">
-                <h2 className="text-3xl font-black text-white italic tracking-tight">
-                    {step === 2 ? (isProfessionalRole ? 'HIZLI DOĞRULAMA' : 'KİMLİK BİLGİLERİ') : 'FİZİKSEL KÜNYE'}
+                <h2 className="text-3xl font-black text-white italic tracking-tight uppercase">
+                    {isApply ? (formStep === 1 ? 'FİZİKSEL VERİLER' : 'İLETİŞİM BİLGİLERİ') : 
+                     isPatron ? (formStep === 1 ? 'PATRON GİRİŞİ' : 'SMS ONAYI') :
+                     isManager ? 'İŞLETME GİRİŞİ' :
+                     (formStep === 1 ? 'KİMLİK DOĞRULAMA' : 'SMS ONAYI')}
                 </h2>
                 <p className="text-gray-400 text-xs mt-2 font-medium">
-                    {step === 2 
-                        ? (isProfessionalRole ? 'Ödeme ve güvenlik işlemleri için gereklidir.' : 'Seni tanımamız ve iletişime geçebilmemiz için gerekli.') 
-                        : 'Saha profilini ve oyuncu kartını oluşturuyoruz.'}
+                    {isApply 
+                        ? (formStep === 1 ? 'Saha profilini oluşturmak için fiziksel verilerini gir.' : 'Başvurunu tamamlamak için iletişim bilgilerini ekle.') 
+                        : isPatron ? (formStep === 1 ? 'Telefon ve şifrenle oturum aç.' : 'Telefonuna gelen 6 haneli kodu gir.')
+                        : isManager ? 'TC ve şifrenle oturum aç.'
+                        : (formStep === 1 ? 'Hesabına erişmek için kimlik bilgilerini gir.' : 'Telefonuna gelen 6 haneli kodu gir.')}
                 </p>
             </div>
 
-            {/* --- STEP 2: CONTACT / IDENTITY INFO --- */}
-            {step === 2 && (
-                <div className="space-y-5 animate-in slide-in-from-right duration-500">
-                    
-                    {isProfessionalRole ? (
-                        /* --- SIMPLIFIED FORM FOR REFEREE / OWNER --- */
+            <div className="space-y-5">
+                {isApply ? (
+                    /* --- BAŞVURU FORMU --- */
+                    formStep === 1 ? (
+                        <>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="group">
+                                    <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">Boy (cm)</label>
+                                    <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
+                                        <Ruler size={18} className="text-gray-500" />
+                                        <input 
+                                            type="number" 
+                                            value={formData.height}
+                                            onChange={(e) => setFormData({...formData, height: e.target.value})}
+                                            className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700"
+                                            placeholder="185"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="group">
+                                    <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">Kilo (kg)</label>
+                                    <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
+                                        <Weight size={18} className="text-gray-500" />
+                                        <input 
+                                            type="number" 
+                                            value={formData.weight}
+                                            onChange={(e) => setFormData({...formData, weight: e.target.value})}
+                                            className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700"
+                                            placeholder="80"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="group">
+                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">Deneyim (Yıl/Seviye)</label>
+                                <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
+                                    <Activity size={18} className="text-gray-500" />
+                                    <input 
+                                        type="text" 
+                                        value={formData.experience}
+                                        onChange={(e) => setFormData({...formData, experience: e.target.value})}
+                                        className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700"
+                                        placeholder="Örn: 5 Yıl Amatör Lig"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="group">
+                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">Niyet Mektubu</label>
+                                <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-start gap-3 focus-within:border-white/40 transition-colors">
+                                    <FileText size={18} className="text-gray-500 mt-1" />
+                                    <textarea 
+                                        rows={3}
+                                        value={formData.intentLetter}
+                                        onChange={(e) => setFormData({...formData, intentLetter: e.target.value})}
+                                        className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700 resize-none text-sm"
+                                        placeholder="Neden seni seçmeliyiz? Kısaca anlat..."
+                                    />
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={handleNextStep}
+                                disabled={!formData.height || !formData.weight || !formData.experience}
+                                className={`w-full h-16 mt-6 rounded-2xl font-black text-lg shadow-xl flex items-center justify-center gap-3 transition-all relative overflow-hidden
+                                ${(!formData.height || !formData.weight || !formData.experience)
+                                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
+                                    : `${theme.bg} text-white hover:scale-[1.02] active:scale-95 ${theme.glow}`
+                                }`}
+                            >
+                                SONRAKİ ADIM <ArrowRight size={20} />
+                            </button>
+                        </>
+                    ) : (
                         <>
                             <div className="group">
-                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1 group-focus-within:text-white transition-colors">TC Kimlik Numarası</label>
+                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">E-Posta</label>
                                 <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
-                                    <Fingerprint size={20} className="text-gray-500 group-focus-within:text-white transition-colors" />
+                                    <Mail size={18} className="text-gray-500" />
+                                    <input 
+                                        type="email" 
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                        className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700"
+                                        placeholder="mail@adresin.com"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="group">
+                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">Telefon</label>
+                                <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
+                                    <Smartphone size={18} className="text-gray-500" />
+                                    <input 
+                                        type="tel" 
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                        className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700"
+                                        placeholder="05XX XXX XX XX"
+                                    />
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={handleComplete}
+                                disabled={isVerifying || !formData.email || !formData.phone}
+                                className={`w-full h-16 mt-6 rounded-2xl font-black text-lg shadow-xl flex items-center justify-center gap-3 transition-all relative overflow-hidden
+                                ${isVerifying || !formData.email || !formData.phone
+                                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
+                                    : `${theme.bg} text-white hover:scale-[1.02] active:scale-95 ${theme.glow}`
+                                }`}
+                            >
+                                {isVerifying ? (
+                                    <>
+                                        <Activity size={20} className="animate-spin" /> İŞLENİYOR...
+                                    </>
+                                ) : (
+                                    <>
+                                        BAŞVURUYU GÖNDER <Check size={20} />
+                                    </>
+                                )}
+                            </button>
+                        </>
+                    )
+                ) : isPatron ? (
+                    /* --- PATRON GİRİŞİ --- */
+                    formStep === 1 ? (
+                        <>
+                            <div className="group">
+                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">Telefon</label>
+                                <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
+                                    <Smartphone size={18} className="text-gray-500" />
+                                    <input 
+                                        type="tel" 
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                        className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700"
+                                        placeholder="05XX XXX XX XX"
+                                    />
+                                </div>
+                            </div>
+                            <div className="group">
+                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">Şifre</label>
+                                <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
+                                    <Lock size={18} className="text-gray-500" />
+                                    <input 
+                                        type="password" 
+                                        value={formData.password}
+                                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                        className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700"
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                            </div>
+                            <button 
+                                onClick={handleNextStep}
+                                disabled={!formData.phone || !formData.password}
+                                className={`w-full h-16 mt-6 rounded-2xl font-black text-lg shadow-xl flex items-center justify-center gap-3 transition-all relative overflow-hidden
+                                ${(!formData.phone || !formData.password)
+                                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
+                                    : `${theme.bg} text-white hover:scale-[1.02] active:scale-95 ${theme.glow}`
+                                }`}
+                            >
+                                KOD GÖNDER <ArrowRight size={20} />
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <div className="group">
+                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">SMS Kodu</label>
+                                <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
+                                    <Lock size={18} className="text-gray-500" />
+                                    <input 
+                                        type="text" 
+                                        maxLength={6}
+                                        value={formData.smsCode}
+                                        onChange={(e) => setFormData({...formData, smsCode: e.target.value.replace(/[^0-9]/g, '')})}
+                                        className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700 tracking-[0.5em] text-center"
+                                        placeholder="XXXXXX"
+                                    />
+                                </div>
+                            </div>
+                            <button 
+                                onClick={handleComplete}
+                                disabled={isVerifying || formData.smsCode.length < 6}
+                                className={`w-full h-16 mt-6 rounded-2xl font-black text-lg shadow-xl flex items-center justify-center gap-3 transition-all relative overflow-hidden
+                                ${isVerifying || formData.smsCode.length < 6
+                                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
+                                    : `${theme.bg} text-white hover:scale-[1.02] active:scale-95 ${theme.glow}`
+                                }`}
+                            >
+                                {isVerifying ? (
+                                    <>
+                                        <Activity size={20} className="animate-spin" /> DOĞRULANIYOR...
+                                    </>
+                                ) : (
+                                    <>
+                                        GİRİŞ YAP <Check size={20} />
+                                    </>
+                                )}
+                            </button>
+                        </>
+                    )
+                ) : isManager ? (
+                    /* --- İŞLETME GİRİŞİ --- */
+                    <>
+                        <div className="group">
+                            <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">TC Kimlik No</label>
+                            <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
+                                <Fingerprint size={18} className="text-gray-500" />
+                                <input 
+                                    type="tel" 
+                                    maxLength={11}
+                                    value={formData.tcNumber}
+                                    onChange={(e) => setFormData({...formData, tcNumber: e.target.value.replace(/[^0-9]/g, '')})}
+                                    className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700 tracking-widest font-mono"
+                                    placeholder="12345678901"
+                                />
+                            </div>
+                        </div>
+                        <div className="group">
+                            <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">Şifre</label>
+                            <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
+                                <Lock size={18} className="text-gray-500" />
+                                <input 
+                                    type="password" 
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                    className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+                        </div>
+                        <button 
+                            onClick={handleComplete}
+                            disabled={isVerifying || !formData.tcNumber || !formData.password}
+                            className={`w-full h-16 mt-6 rounded-2xl font-black text-lg shadow-xl flex items-center justify-center gap-3 transition-all relative overflow-hidden
+                            ${isVerifying || !formData.tcNumber || !formData.password
+                                ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
+                                : `${theme.bg} text-white hover:scale-[1.02] active:scale-95 ${theme.glow}`
+                            }`}
+                        >
+                            {isVerifying ? (
+                                <>
+                                    <Activity size={20} className="animate-spin" /> DOĞRULANIYOR...
+                                </>
+                            ) : (
+                                <>
+                                    GİRİŞ YAP <Check size={20} />
+                                </>
+                            )}
+                        </button>
+                    </>
+                ) : (
+                    /* --- STANDART GİRİŞ FORMU (GK/REF) --- */
+                    formStep === 1 ? (
+                        <>
+                            <div className="group">
+                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">TC Kimlik No</label>
+                                <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
+                                    <Fingerprint size={18} className="text-gray-500" />
                                     <input 
                                         type="tel" 
                                         maxLength={11}
@@ -186,149 +528,100 @@ const RoleSelection: React.FC<RoleSelectionProps> = ({ onSelect, onBack, onPartn
                                         onChange={(e) => setFormData({...formData, tcNumber: e.target.value.replace(/[^0-9]/g, '')})}
                                         className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700 tracking-widest font-mono"
                                         placeholder="12345678901"
-                                        autoFocus
                                     />
                                 </div>
                             </div>
 
                             <div className="group">
-                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1 group-focus-within:text-white transition-colors">Telefon Numarası</label>
+                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">E-Posta</label>
                                 <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
-                                    <Smartphone size={20} className="text-gray-500 group-focus-within:text-white transition-colors" />
-                                    <input 
-                                        type="tel" 
-                                        value={formData.phone}
-                                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                                        className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700"
-                                        placeholder="5XX XXX XX XX"
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        /* --- STANDARD FORM FOR GK --- */
-                        <>
-                            <div className="group">
-                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1 group-focus-within:text-white transition-colors">Ad Soyad</label>
-                                <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
-                                    <User size={20} className="text-gray-500 group-focus-within:text-white transition-colors" />
-                                    <input 
-                                        type="text" 
-                                        value={formData.fullName}
-                                        onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                                        className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700"
-                                        placeholder="Örn: Burak Yılmaz"
-                                        autoFocus
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="group">
-                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1 group-focus-within:text-white transition-colors">E-Posta Adresi</label>
-                                <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
-                                    <Mail size={20} className="text-gray-500 group-focus-within:text-white transition-colors" />
+                                    <Mail size={18} className="text-gray-500" />
                                     <input 
                                         type="email" 
                                         value={formData.email}
                                         onChange={(e) => setFormData({...formData, email: e.target.value})}
                                         className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700"
-                                        placeholder="ornek@oyna.app"
+                                        placeholder="mail@adresin.com"
                                     />
                                 </div>
                             </div>
 
                             <div className="group">
-                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1 group-focus-within:text-white transition-colors">Telefon Numarası</label>
+                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">Telefon</label>
                                 <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
-                                    <Smartphone size={20} className="text-gray-500 group-focus-within:text-white transition-colors" />
+                                    <Smartphone size={18} className="text-gray-500" />
                                     <input 
                                         type="tel" 
                                         value={formData.phone}
                                         onChange={(e) => setFormData({...formData, phone: e.target.value})}
                                         className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700"
-                                        placeholder="5XX XXX XX XX"
+                                        placeholder="05XX XXX XX XX"
                                     />
                                 </div>
                             </div>
-                        </>
-                    )}
 
-                    <button 
-                       onClick={handleNextAction}
-                       disabled={isProfessionalRole ? (!formData.tcNumber || !formData.phone || isVerifying) : (!formData.fullName || !formData.phone)}
-                       className={`w-full h-16 mt-6 rounded-2xl font-black text-lg shadow-xl flex items-center justify-center gap-3 transition-all relative overflow-hidden
-                       ${(isProfessionalRole ? (!formData.tcNumber || !formData.phone || isVerifying) : (!formData.fullName || !formData.phone))
-                           ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
-                           : `${theme.bg} text-white hover:scale-[1.02] active:scale-95`
-                       }`}
-                    >
-                        {isVerifying ? (
-                           <>
-                               <Activity size={20} className="animate-spin" /> DOĞRULANIYOR...
-                           </>
-                       ) : (
-                           <>
-                               {isProfessionalRole ? 'KAYDI TAMAMLA' : 'DEVAM ET'} <ArrowRight size={20} />
-                           </>
-                       )}
-                    </button>
-                </div>
-            )}
-
-            {/* --- STEP 3: PHYSICAL (ONLY FOR GK) --- */}
-            {!isProfessionalRole && step === 3 && (
-                <div className="space-y-8 animate-in slide-in-from-right duration-500">
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-[24px] flex flex-col items-center justify-center gap-2 focus-within:border-white/40 transition-colors relative overflow-hidden group">
-                            <div className={`absolute top-0 left-0 w-full h-1 ${theme.bg} opacity-0 group-focus-within:opacity-100 transition-opacity`}></div>
-                            <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">YAŞ</span>
-                            <input 
-                                type="number" 
-                                placeholder="25"
-                                value={formData.age}
-                                onChange={(e) => setFormData({...formData, age: e.target.value})} 
-                                className="bg-transparent w-full outline-none text-white text-center font-black text-3xl placeholder:text-gray-800"
-                            />
-                        </div>
-                        <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-[24px] flex flex-col items-center justify-center gap-2 focus-within:border-white/40 transition-colors relative overflow-hidden group">
-                            <div className={`absolute top-0 left-0 w-full h-1 ${theme.bg} opacity-0 group-focus-within:opacity-100 transition-opacity`}></div>
-                            <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">BOY</span>
-                            <div className="flex items-baseline gap-0.5">
-                                <input 
-                                    type="number" 
-                                    placeholder="185"
-                                    value={formData.height}
-                                    onChange={(e) => setFormData({...formData, height: e.target.value})} 
-                                    className="bg-transparent w-16 outline-none text-white text-center font-black text-3xl placeholder:text-gray-800"
-                                />
-                                <span className="text-[10px] text-gray-500 font-bold">cm</span>
+                            <div className="flex items-center gap-3 px-2 py-2">
+                                <button 
+                                    onClick={() => setFormData({...formData, rememberMe: !formData.rememberMe})}
+                                    className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${formData.rememberMe ? `${theme.bg} border-transparent` : 'border-gray-800 bg-[#0A0E14]'}`}
+                                >
+                                    {formData.rememberMe && <Check size={14} className="text-white" />}
+                                </button>
+                                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Beni Hatırla</span>
                             </div>
-                        </div>
-                    </div>
 
-                    <button 
-                       onClick={handleComplete}
-                       disabled={isVerifying}
-                       className={`w-full h-16 mt-4 rounded-2xl font-black text-lg shadow-xl flex items-center justify-center gap-3 transition-all relative overflow-hidden
-                       ${isVerifying 
-                           ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
-                           : `${theme.bg} text-white hover:scale-[1.02] active:scale-95`
-                       }`}
-                    >
-                       {isVerifying ? (
-                           <>
-                               <Activity size={20} className="animate-spin" /> OLUŞTURULUYOR...
-                           </>
-                       ) : (
-                           <>
-                               KAYDI TAMAMLA <Check size={20} />
-                           </>
-                       )}
-                    </button>
-                </div>
-            )}
+                            <button 
+                                onClick={handleNextStep}
+                                disabled={!formData.tcNumber || !formData.email || !formData.phone}
+                                className={`w-full h-16 mt-6 rounded-2xl font-black text-lg shadow-xl flex items-center justify-center gap-3 transition-all relative overflow-hidden
+                                ${(!formData.tcNumber || !formData.email || !formData.phone)
+                                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
+                                    : `${theme.bg} text-white hover:scale-[1.02] active:scale-95 ${theme.glow}`
+                                }`}
+                            >
+                                KOD GÖNDER <ArrowRight size={20} />
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <div className="group">
+                                <label className="text-[10px] text-gray-500 font-bold uppercase mb-2 block ml-1">SMS Kodu</label>
+                                <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-2xl flex items-center gap-3 focus-within:border-white/40 transition-colors">
+                                    <Lock size={18} className="text-gray-500" />
+                                    <input 
+                                        type="text" 
+                                        maxLength={6}
+                                        value={formData.smsCode}
+                                        onChange={(e) => setFormData({...formData, smsCode: e.target.value.replace(/[^0-9]/g, '')})}
+                                        className="bg-transparent w-full outline-none text-white font-bold placeholder:text-gray-700 tracking-[0.5em] text-center"
+                                        placeholder="XXXXXX"
+                                    />
+                                </div>
+                            </div>
 
+                            <button 
+                                onClick={handleComplete}
+                                disabled={isVerifying || formData.smsCode.length < 6}
+                                className={`w-full h-16 mt-6 rounded-2xl font-black text-lg shadow-xl flex items-center justify-center gap-3 transition-all relative overflow-hidden
+                                ${isVerifying || formData.smsCode.length < 6
+                                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
+                                    : `${theme.bg} text-white hover:scale-[1.02] active:scale-95 ${theme.glow}`
+                                }`}
+                            >
+                                {isVerifying ? (
+                                    <>
+                                        <Activity size={20} className="animate-spin" /> DOĞRULANIYOR...
+                                    </>
+                                ) : (
+                                    <>
+                                        GİRİŞ YAP <Check size={20} />
+                                    </>
+                                )}
+                            </button>
+                        </>
+                    )
+                )}
+            </div>
          </div>
       </div>
     );

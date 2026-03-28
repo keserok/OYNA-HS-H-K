@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserRole, AppView, JobListing, GkStyle, DirectOffer, Equipment } from '../types';
 import { ArrowLeft, MapPin, Navigation, Star, DollarSign, Calendar, Shield, Scale, Power, Bell, Wallet, List, User, Check, X, ChevronRight, Clock, Trophy, Search, MessageSquare, Send, ArrowRight, Hand, Briefcase, PlusCircle, Sparkles, Zap, Activity, Coins, Tag, Flame, RefreshCcw, Eye, Gauge, Flag, CreditCard, Banknote, Users } from 'lucide-react';
-import { UPCOMING_JOBS, OPEN_JOBS, WALLET_HISTORY, DIRECT_OFFERS_MOCK } from '../constants';
+import { UPCOMING_JOBS, WALLET_HISTORY, DIRECT_OFFERS_MOCK } from '../constants';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ServiceDashboardProps {
@@ -30,7 +30,9 @@ const ServiceDashboard: React.FC<ServiceDashboardProps> = ({ role, onBack, onNav
   const isRef = role === UserRole.REFEREE;
   const [activeTab, setActiveTab] = useState<Tab>('HOME');
   const [isAvailable, setIsAvailable] = useState(true);
-  const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
+  const [openMatches, setOpenMatches] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [selectedOffer, setSelectedOffer] = useState<DirectOffer | null>(null);
   const [selectedUpcomingJob, setSelectedUpcomingJob] = useState<JobListing | null>(null);
   const [bidAmount, setBidAmount] = useState<number>(0);
@@ -45,6 +47,41 @@ const ServiceDashboard: React.FC<ServiceDashboardProps> = ({ role, onBack, onNav
 
   // Mock countdown for next match
   const [timeLeft, setTimeLeft] = useState('02:45:12');
+
+  useEffect(() => {
+    // Firebase setup was declined or skipped, using mock mode
+    const uid = 'mock-user-id';
+    
+    // Use default mock profile
+    const mockProfile = {
+      uid: uid,
+      fullName: 'Test Kullanıcısı',
+      role: role,
+      email: 'test@example.com',
+      isAvailable: true,
+      rating: 4.8,
+      matchesPlayed: 12,
+      walletBalance: 1250,
+      createdAt: new Date()
+    };
+    
+    setUserProfile(mockProfile);
+    setIsAvailable(true);
+
+    // Mock matches subscription
+    setOpenMatches([]);
+
+    return () => {
+        // No-op cleanup
+    };
+  }, []);
+
+  const toggleAvailability = async () => {
+      const newStatus = !isAvailable;
+      setIsAvailable(newStatus);
+      // Mock update
+      console.log("Mock: Availability updated to", newStatus);
+  };
 
   useEffect(() => {
     if (activeTab === 'HOME') {
@@ -77,9 +114,9 @@ const ServiceDashboard: React.FC<ServiceDashboardProps> = ({ role, onBack, onNav
     ? { primary: 'text-red-500', bg: 'bg-red-500', border: 'border-red-500', gradient: 'from-red-900', shadow: 'shadow-red-900/20', secondaryBg: 'bg-red-900/20' }
     : { primary: 'text-green-500', bg: 'bg-green-500', border: 'border-green-500', gradient: 'from-[#064E3B]', shadow: 'shadow-green-900/20', secondaryBg: 'bg-green-900/20' };
 
-  const handleOpenBid = (job: JobListing) => {
+  const handleOpenBid = (job: any) => {
       setSelectedJob(job);
-      setBidAmount(job.offeredFee); // Default to captain's offer
+      setBidAmount(0); // In real app, we might bid a custom amount
   };
 
   const handleOpenOffer = (offer: DirectOffer) => {
@@ -87,16 +124,27 @@ const ServiceDashboard: React.FC<ServiceDashboardProps> = ({ role, onBack, onNav
       setBidAmount(offer.offerAmount);
   };
 
-  const submitBid = () => {
-      // Simulate API call
-      setTimeout(() => {
+  const submitBid = async () => {
+      const uid = 'mock-user-id';
+      if (!uid || !selectedJob?.id) return;
+      
+      setIsTransferring(true); // Re-using loading state for bid
+      try {
+          // Mock application
+          console.log("Mock: Applied to match", selectedJob.id);
+          
           setShowBidSuccess(true);
           setTimeout(() => {
               setShowBidSuccess(false);
               setSelectedJob(null);
               setSelectedOffer(null);
           }, 2000);
-      }, 1000);
+      } catch (error) {
+          console.error("Error submitting bid:", error);
+          alert("Başvuru yapılırken bir hata oluştu.");
+      } finally {
+          setIsTransferring(false);
+      }
   };
 
   // --- GOALKEEPER IDENTITY CARD (FLIPPING) ---
@@ -292,7 +340,7 @@ const ServiceDashboard: React.FC<ServiceDashboardProps> = ({ role, onBack, onNav
           {/* Online/Offline Toggle */}
           <div className="px-6 pt-2">
               <button 
-                onClick={() => setIsAvailable(!isAvailable)}
+                onClick={toggleAvailability}
                 className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
                   isAvailable 
                     ? 'bg-green-500/10 border-green-500/30 shadow-[0_0_20px_rgba(34,197,94,0.15)]' 
@@ -451,7 +499,7 @@ const ServiceDashboard: React.FC<ServiceDashboardProps> = ({ role, onBack, onNav
          {/* General Market List */}
          <div className="flex items-center justify-between px-6 mb-2 mt-4">
             <h3 className="font-black text-white text-sm flex items-center gap-2 tracking-wide">
-                MAÇ PAZARI <span className="bg-[#161B22] border border-white/10 text-gray-400 text-[10px] font-bold px-1.5 py-0.5 rounded-full">{OPEN_JOBS.length}</span>
+                MAÇ PAZARI <span className="bg-[#161B22] border border-white/10 text-gray-400 text-[10px] font-bold px-1.5 py-0.5 rounded-full">{openMatches.length}</span>
             </h3>
             <button className="text-[10px] text-blue-400 font-bold flex items-center gap-1 hover:text-white transition-colors">
                 <MapPin size={12} /> Harita
@@ -460,7 +508,7 @@ const ServiceDashboard: React.FC<ServiceDashboardProps> = ({ role, onBack, onNav
 
          {/* Job Cards */}
          <div className="px-6 space-y-3">
-            {OPEN_JOBS.map(job => (
+            {openMatches.map(job => (
                 <motion.div 
                     key={job.id} 
                     initial={{ opacity: 0 }}
@@ -469,29 +517,33 @@ const ServiceDashboard: React.FC<ServiceDashboardProps> = ({ role, onBack, onNav
                 >
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-[#0A0E14] rounded-2xl flex flex-col items-center justify-center border border-white/5 text-gray-400">
-                            <span className="text-[10px] font-bold uppercase">{job.date}</span>
+                            <span className="text-[10px] font-bold uppercase">{job.date.split('-').slice(1).join('/')}</span>
                             <span className="text-sm font-black text-white">{job.time}</span>
                         </div>
                         <div>
                             <h4 className="font-bold text-white text-sm">{job.pitchName}</h4>
                             <div className="flex items-center gap-2 text-[10px] text-gray-500 mt-0.5">
-                                <span className="bg-white/5 px-1.5 py-0.5 rounded text-gray-300">{job.distance}</span>
+                                <span className="bg-white/5 px-1.5 py-0.5 rounded text-gray-300">Kaptan: {job.captainName}</span>
                                 <span>• {job.time}</span>
-                                <span>• {job.location}</span>
                             </div>
                         </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                        <span className="text-lg font-black text-white">{job.offeredFee}₺</span>
+                        <span className="text-lg font-black text-white">Açık</span>
                         <button 
                             onClick={() => handleOpenBid(job)}
                             className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-colors text-white ${isRef ? 'bg-red-600 hover:bg-red-500' : 'bg-green-600 hover:bg-green-500'}`}
                         >
-                            TEKLİF VER
+                            BAŞVUR
                         </button>
                     </div>
                 </motion.div>
             ))}
+            {openMatches.length === 0 && (
+                <div className="text-center py-10 text-gray-500 font-bold italic">
+                    Şu an açık maç bulunmuyor...
+                </div>
+            )}
          </div>
          
          {/* Gear Showcase - Dynamic based on Role */}
